@@ -1,6 +1,6 @@
 import { useRef, type ChangeEvent } from 'react'
 import { ImagePlus, Link as LinkIcon } from 'lucide-react'
-import { uploadPropertyImage } from '../../services/contentApi'
+import { uploadPropertyImageWithFallback } from '../../services/contentApi'
 
 type ImageFieldProps = {
   label: string
@@ -22,18 +22,9 @@ export default function ImageField({
     if (!file) return
 
     void (async () => {
-      const url = await uploadPropertyImage(file)
-      if (url) {
-        onChange(url)
-        return
-      }
-
-      // fallback: se o storage não estiver configurado, salva como base64 local
-      const reader = new FileReader()
-      reader.onload = () => {
-        if (typeof reader.result === 'string') onChange(reader.result)
-      }
-      reader.readAsDataURL(file)
+      const url = await uploadPropertyImageWithFallback(file)
+      onChange(url)
+      return
     })()
 
     event.target.value = ''

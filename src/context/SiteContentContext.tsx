@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from 'react'
 import type { Property } from '../data/properties'
-import type { AboutContent, HeroContent, SiteConfig, SiteContent, Testimonial } from '../types/content'
+import type { AboutContent, HeroContent, PropertyOptionsConfig, SiteConfig, SiteContent, Testimonial } from '../types/content'
 import { defaultContent } from '../data/defaultContent'
 import {
   clearStoredContent,
@@ -17,6 +17,7 @@ import {
   loadStoredContent,
   saveStoredContent,
 } from '../utils/storage'
+import { normalizeSiteContent } from '../utils/contentMerge'
 import { fetchCloudContent, saveCloudContent } from '../services/contentApi'
 import { getAdminSyncPassword, isAdminSessionActive } from '../config/admin'
 
@@ -24,6 +25,7 @@ interface SiteContentContextValue {
   content: SiteContent
   site: SiteConfig
   properties: Property[]
+  propertyOptions: PropertyOptionsConfig
   hero: HeroContent
   about: AboutContent
   testimonials: Testimonial[]
@@ -32,6 +34,7 @@ interface SiteContentContextValue {
   updateHero: (hero: HeroContent) => void
   updateAbout: (about: AboutContent) => void
   updateTestimonials: (testimonials: Testimonial[]) => void
+  updatePropertyOptions: (propertyOptions: PropertyOptionsConfig) => void
   saveProperty: (property: Property) => void
   deleteProperty: (id: number) => void
   importContent: (content: SiteContent) => void
@@ -44,7 +47,7 @@ interface SiteContentContextValue {
 const SiteContentContext = createContext<SiteContentContextValue | null>(null)
 
 function getInitialContent(): SiteContent {
-  return loadStoredContent() ?? cloneDefaultContent()
+  return normalizeSiteContent(loadStoredContent() ?? cloneDefaultContent())
 }
 
 export function SiteContentProvider({ children }: { children: ReactNode }) {
@@ -102,6 +105,11 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     [content, persist],
   )
 
+  const updatePropertyOptions = useCallback(
+    (propertyOptions: PropertyOptionsConfig) => persist({ ...content, propertyOptions }),
+    [content, persist],
+  )
+
   const saveProperty = useCallback(
     (property: Property) => {
       const exists = content.properties.some((item) => item.id === property.id)
@@ -125,7 +133,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   )
 
   const importContent = useCallback((next: SiteContent) => {
-    persist(next)
+    persist(normalizeSiteContent(next))
   }, [persist])
 
   const resetToDefaults = useCallback(() => {
@@ -163,6 +171,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       content,
       site: content.site,
       properties: content.properties,
+      propertyOptions: content.propertyOptions,
       hero: content.hero,
       about: content.about,
       testimonials: content.testimonials,
@@ -171,6 +180,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       updateHero,
       updateAbout,
       updateTestimonials,
+      updatePropertyOptions,
       saveProperty,
       deleteProperty,
       importContent,
@@ -186,6 +196,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       updateHero,
       updateAbout,
       updateTestimonials,
+      updatePropertyOptions,
       saveProperty,
       deleteProperty,
       importContent,

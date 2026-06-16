@@ -1,5 +1,18 @@
 import type { Property } from '../data/properties'
 
+export interface SelectOption {
+  value: string
+  label: string
+}
+
+export interface PropertyOptionsConfig {
+  types: SelectOption[]
+  categories: SelectOption[]
+  buildingTypes: SelectOption[]
+  cities: SelectOption[]
+  amenityPresets: SelectOption[]
+}
+
 export interface SiteConfig {
   name: string
   shortName: string
@@ -45,6 +58,7 @@ export interface Testimonial {
 export interface SiteContent {
   site: SiteConfig
   properties: Property[]
+  propertyOptions: PropertyOptionsConfig
   hero: HeroContent
   about: AboutContent
   testimonials: Testimonial[]

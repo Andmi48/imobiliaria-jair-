@@ -1,5 +1,6 @@
 import type { SiteContent } from '../types/content'
 import { isCloudEnabled, supabase } from '../lib/supabase'
+import { normalizeSiteContent } from '../utils/contentMerge'
 
 function isValidContent(data: unknown): data is SiteContent {
   if (!data || typeof data !== 'object') return false
@@ -16,7 +17,7 @@ export async function fetchCloudContent(): Promise<SiteContent | null> {
     return null
   }
 
-  return isValidContent(data) ? data : null
+  return isValidContent(data) ? normalizeSiteContent(data) : null
 }
 
 export async function saveCloudContent(
@@ -48,4 +49,26 @@ export async function uploadPropertyImage(file: File): Promise<string | null> {
 
   const { data } = supabase.storage.from('property-images').getPublicUrl(filePath)
   return data.publicUrl
+}
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === 'string') resolve(reader.result)
+      else reject(new Error('Falha ao ler arquivo'))
+    }
+    reader.onerror = () => reject(reader.error ?? new Error('Falha ao ler arquivo'))
+    reader.readAsDataURL(file)
+  })
+}
+
+export async function uploadPropertyImageWithFallback(file: File): Promise<string> {
+  const url = await uploadPropertyImage(file)
+  if (url) return url
+  return readFileAsDataUrl(file)
+}
+
+export async function uploadPropertyImages(files: File[]): Promise<string[]> {
+  return Promise.all(files.map((file) => uploadPropertyImageWithFallback(file)))
 }

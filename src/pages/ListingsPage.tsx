@@ -12,11 +12,16 @@ interface ListingsPageProps {
 export default function ListingsPage({ type }: ListingsPageProps) {
   const [searchParams] = useSearchParams()
   const initialQuery = searchParams.get('q') ?? ''
+  const initialCategory = searchParams.get('categoria') ?? ''
   const [query, setQuery] = useState(initialQuery)
   const { properties } = useSiteContent()
 
   const filtered = useMemo(() => {
     let result = properties.filter((p) => p.type === type)
+
+    if (initialCategory) {
+      result = result.filter((p) => p.category === initialCategory)
+    }
 
     if (query.trim()) {
       const q = query.toLowerCase()
@@ -29,7 +34,7 @@ export default function ListingsPage({ type }: ListingsPageProps) {
     }
 
     return result
-  }, [type, query])
+  }, [type, query, initialCategory, properties])
 
   const title = type === 'Venda' ? 'Imóveis à venda' : 'Imóveis para alugar'
   const subtitle =

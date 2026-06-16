@@ -1,15 +1,14 @@
 import { Search, MapPin, Building2, Key } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { PropertyCategory } from '../data/properties'
 import { useSiteContent } from '../context/SiteContentContext'
 
 export default function Hero() {
   const [searchType, setSearchType] = useState<'comprar' | 'alugar'>('comprar')
   const [query, setQuery] = useState('')
-  const [category, setCategory] = useState<PropertyCategory | ''>('')
+  const [category, setCategory] = useState('')
   const navigate = useNavigate()
-  const { hero } = useSiteContent()
+  const { hero, propertyOptions } = useSiteContent()
 
   const handleSearch = () => {
     const path = searchType === 'comprar' ? '/venda' : '/aluguel'
@@ -98,15 +97,15 @@ export default function Hero() {
               <Building2 className="w-5 h-5 text-brand-blue shrink-0" />
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value as PropertyCategory | '')}
+                onChange={(e) => setCategory(e.target.value)}
                 className="w-full bg-transparent outline-none text-gray-700 cursor-pointer"
               >
                 <option value="">Tipo de imóvel</option>
-                <option value="apartamento">Apartamento</option>
-                <option value="casa">Casa</option>
-                <option value="cobertura">Cobertura</option>
-                <option value="comercial">Comercial</option>
-                <option value="studio">Studio</option>
+                {propertyOptions.categories.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
             <button

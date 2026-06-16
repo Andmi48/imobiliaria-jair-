@@ -5,6 +5,7 @@ import {
   Home,
   Info,
   LayoutDashboard,
+  ListChecks,
   LogOut,
   MessageSquareQuote,
   Settings,
@@ -13,17 +14,19 @@ import {
 } from 'lucide-react'
 import { useAdminAuth } from '../../context/AdminAuthContext'
 import AdminPropertiesSection from '../../components/admin/AdminPropertiesSection'
+import AdminPropertyOptionsSection from '../../components/admin/AdminPropertyOptionsSection'
 import AdminSiteSection from '../../components/admin/AdminSiteSection'
 import AdminHeroSection from '../../components/admin/AdminHeroSection'
 import AdminAboutSection from '../../components/admin/AdminAboutSection'
 import AdminTestimonialsSection from '../../components/admin/AdminTestimonialsSection'
 import AdminBackupSection from '../../components/admin/AdminBackupSection'
 
-type AdminTab = 'overview' | 'properties' | 'site' | 'hero' | 'about' | 'testimonials' | 'backup'
+type AdminTab = 'overview' | 'properties' | 'property-options' | 'site' | 'hero' | 'about' | 'testimonials' | 'backup'
 
 const tabs: Array<{ id: AdminTab; label: string; icon: typeof Home }> = [
   { id: 'overview', label: 'Visão geral', icon: LayoutDashboard },
   { id: 'properties', label: 'Imóveis', icon: Building2 },
+  { id: 'property-options', label: 'Opções dos campos', icon: ListChecks },
   { id: 'site', label: 'Empresa', icon: Settings },
   { id: 'hero', label: 'Página inicial', icon: Home },
   { id: 'about', label: 'Sobre', icon: Info },
@@ -114,6 +117,7 @@ export default function AdminPanelPage() {
               </div>
             )}
             {activeTab === 'properties' && <AdminPropertiesSection />}
+            {activeTab === 'property-options' && <AdminPropertyOptionsSection />}
             {activeTab === 'site' && <AdminSiteSection />}
             {activeTab === 'hero' && <AdminHeroSection />}
             {activeTab === 'about' && <AdminAboutSection />}

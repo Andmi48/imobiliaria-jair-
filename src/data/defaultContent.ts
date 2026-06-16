@@ -1,9 +1,11 @@
 import { properties } from './properties'
 import { site } from './site'
+import { defaultPropertyOptions } from './propertyOptions'
 import type { SiteContent } from '../types/content'
 
 export const defaultContent: SiteContent = {
   site: { ...site, address: { ...site.address }, social: { ...site.social }, phones: [...site.phones] },
+  propertyOptions: defaultPropertyOptions,
   properties: properties.map((property) => ({
     ...property,
     images: [...property.images],

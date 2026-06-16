@@ -1,5 +1,5 @@
-export type PropertyType = 'Venda' | 'Aluguel'
-export type PropertyCategory = 'apartamento' | 'casa' | 'cobertura' | 'comercial' | 'studio'
+export type PropertyType = string
+export type PropertyCategory = string
 
 export interface Property {
   id: number
@@ -10,6 +10,7 @@ export interface Property {
   priceValue: number
   type: PropertyType
   category: PropertyCategory
+  buildingType?: string
   bedrooms: number
   bathrooms: number
   area: number

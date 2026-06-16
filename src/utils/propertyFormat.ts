@@ -1,6 +1,4 @@
-import type { PropertyType } from '../data/properties'
-
-export function formatPropertyPrice(value: number, type: PropertyType): string {
+export function formatPropertyPrice(value: number, type: string): string {
   const formatted = value.toLocaleString('pt-BR')
   return type === 'Aluguel' ? `R$ ${formatted}/mês` : `R$ ${formatted}`
 }
