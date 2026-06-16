@@ -4,6 +4,7 @@ import {
   Building2,
   Home,
   Info,
+  Image,
   LayoutDashboard,
   ListChecks,
   LogOut,
@@ -15,16 +16,18 @@ import {
 import { useAdminAuth } from '../../context/AdminAuthContext'
 import AdminPropertiesSection from '../../components/admin/AdminPropertiesSection'
 import AdminPropertyOptionsSection from '../../components/admin/AdminPropertyOptionsSection'
+import AdminLogoSection from '../../components/admin/AdminLogoSection'
 import AdminSiteSection from '../../components/admin/AdminSiteSection'
 import AdminHeroSection from '../../components/admin/AdminHeroSection'
 import AdminAboutSection from '../../components/admin/AdminAboutSection'
 import AdminTestimonialsSection from '../../components/admin/AdminTestimonialsSection'
 import AdminBackupSection from '../../components/admin/AdminBackupSection'
 
-type AdminTab = 'overview' | 'properties' | 'property-options' | 'site' | 'hero' | 'about' | 'testimonials' | 'backup'
+type AdminTab = 'overview' | 'logo' | 'properties' | 'property-options' | 'site' | 'hero' | 'about' | 'testimonials' | 'backup'
 
 const tabs: Array<{ id: AdminTab; label: string; icon: typeof Home }> = [
   { id: 'overview', label: 'Visão geral', icon: LayoutDashboard },
+  { id: 'logo', label: 'Logo', icon: Image },
   { id: 'properties', label: 'Imóveis', icon: Building2 },
   { id: 'property-options', label: 'Opções dos campos', icon: ListChecks },
   { id: 'site', label: 'Empresa', icon: Settings },
@@ -116,6 +119,7 @@ export default function AdminPanelPage() {
                 </div>
               </div>
             )}
+            {activeTab === 'logo' && <AdminLogoSection />}
             {activeTab === 'properties' && <AdminPropertiesSection />}
             {activeTab === 'property-options' && <AdminPropertyOptionsSection />}
             {activeTab === 'site' && <AdminSiteSection />}

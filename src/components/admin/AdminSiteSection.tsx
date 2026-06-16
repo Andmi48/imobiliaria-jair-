@@ -25,16 +25,25 @@ export default function AdminSiteSection() {
         <p className="text-sm text-gray-500">Informações exibidas no rodapé, contato e WhatsApp.</p>
       </div>
 
-      <div className="rounded-xl border border-gray-200 p-4 sm:p-5 bg-gray-50">
+      <div className="rounded-xl border border-gray-200 p-4 sm:p-5">
         <ImageField
-          label="Logo do site (use o arquivo original, sem alterações)"
+          label="Logo do site (arquivo original — não altere a imagem)"
           value={form.logoUrl ?? ''}
           onChange={(value) => update('logoUrl', value)}
-          previewClassName="h-24 w-auto max-w-full object-contain rounded-lg border border-gray-200 bg-white p-2"
+          previewClassName="h-24 w-auto max-w-full object-contain object-left"
         />
         <p className="text-xs text-gray-500 mt-2">
-          Envie o PNG ou JPG original da logo. Ela aparece no menu branco do topo do site.
+          Envie o PNG ou JPG original da sua logo. O site usa exatamente este arquivo, sem recriar nem editar.
         </p>
+        {form.logoUrl && (
+          <button
+            type="button"
+            onClick={() => update('logoUrl', '')}
+            className="mt-2 text-sm text-brand-red hover:underline"
+          >
+            Remover logo atual
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
