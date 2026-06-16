@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 56" role="img" aria-label="Jair A Costa Consultor Imobiliário">
+  <g fill="none" stroke="#ffffff" stroke-width="2" stroke-linejoin="round">
+    <path d="M8 44V18l14-8 14 8v26" />
+    <path d="M22 36h0" stroke-width="3" />
+    <rect x="17" y="28" width="10" height="16" rx="1" fill="#ffffff" stroke="none" />
+  </g>
+  <text x="48" y="24" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700">
+  Jair A Costa
+  </text>
+  <text x="48" y="42" fill="#e2e8f0" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="500">
+  Corretor de Imóveis / Consultor Imobiliário
+  </text>
+</svg>
