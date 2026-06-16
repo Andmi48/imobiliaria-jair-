@@ -18,6 +18,7 @@ import {
   saveStoredContent,
 } from '../utils/storage'
 import { fetchCloudContent, saveCloudContent } from '../services/contentApi'
+import { getAdminSyncPassword, isAdminSessionActive } from '../config/admin'
 
 interface SiteContentContextValue {
   content: SiteContent
@@ -135,8 +136,10 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const exportContent = useCallback(() => JSON.stringify(content, null, 2), [content])
 
   const syncNow = useCallback(async () => {
+    if (!isAdminSessionActive()) return
+
     setLastSyncStatus('syncing')
-    const ok = await saveCloudContent(content, import.meta.env.VITE_ADMIN_PASSWORD ?? '48698574')
+    const ok = await saveCloudContent(content, getAdminSyncPassword())
     setLastSyncStatus(ok ? 'ok' : 'error')
   }, [content])
 

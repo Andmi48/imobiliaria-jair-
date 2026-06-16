@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { Lock, LogIn } from 'lucide-react'
+import { Lock, LogIn, Mail } from 'lucide-react'
 import { useAdminAuth } from '../../context/AdminAuthContext'
 
 export default function AdminLoginPage() {
   const { isAuthenticated, login } = useAdminAuth()
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
@@ -14,9 +15,9 @@ export default function AdminLoginPage() {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
-    const success = login(password)
+    const success = login(email, password)
     if (!success) {
-      setError('Senha incorreta. Tente novamente.')
+      setError('E-mail ou senha incorretos. Tente novamente.')
       return
     }
     setError('')
@@ -29,12 +30,31 @@ export default function AdminLoginPage() {
           <Lock className="w-7 h-7" />
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">Área de Acesso</h1>
+        <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">Login do Administrador</h1>
         <p className="text-sm text-gray-500 text-center mb-8">
-          Painel administrativo do site. Somente para o administrador.
+          Acesse com seu e-mail e senha para gerenciar o site.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              E-mail
+            </label>
+            <div className="relative">
+              <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue/20 outline-none"
+                placeholder="seu@email.com"
+                required
+              />
+            </div>
+          </div>
+
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
               Senha
@@ -42,6 +62,7 @@ export default function AdminLoginPage() {
             <input
               id="password"
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue/20 outline-none"

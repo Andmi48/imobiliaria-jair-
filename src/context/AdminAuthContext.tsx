@@ -6,13 +6,15 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-
-const AUTH_KEY = 'jairacosta-admin-auth'
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD ?? '48698574'
+import {
+  AUTH_KEY,
+  SYNC_PASSWORD_KEY,
+  validateAdminCredentials,
+} from '../config/admin'
 
 interface AdminAuthContextValue {
   isAuthenticated: boolean
-  login: (password: string) => boolean
+  login: (email: string, password: string) => boolean
   logout: () => void
 }
 
@@ -25,15 +27,18 @@ function readAuthState() {
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(readAuthState)
 
-  const login = useCallback((password: string) => {
-    if (password !== ADMIN_PASSWORD) return false
+  const login = useCallback((email: string, password: string) => {
+    if (!validateAdminCredentials(email, password)) return false
+
     sessionStorage.setItem(AUTH_KEY, 'true')
+    sessionStorage.setItem(SYNC_PASSWORD_KEY, password)
     setIsAuthenticated(true)
     return true
   }, [])
 
   const logout = useCallback(() => {
     sessionStorage.removeItem(AUTH_KEY)
+    sessionStorage.removeItem(SYNC_PASSWORD_KEY)
     setIsAuthenticated(false)
   }, [])
 

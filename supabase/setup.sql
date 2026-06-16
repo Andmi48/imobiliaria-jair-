@@ -31,7 +31,7 @@ security definer
 set search_path = public
 as $$
 begin
-  if admin_password is distinct from '48698574' then
+  if admin_password is distinct from 'Andre@4869' then
     return false;
   end if;
 

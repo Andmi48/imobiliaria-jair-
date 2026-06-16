@@ -1,7 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { Menu, X, Home, Phone } from 'lucide-react'
-import { useSiteContent } from '../context/SiteContentContext'
+import { Menu, X, Phone } from 'lucide-react'
 
 const navLinks = [
   { href: '/#inicio', label: 'Início' },
@@ -16,7 +15,6 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const location = useLocation()
   const isHome = location.pathname === '/'
-  const { site } = useSiteContent()
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -40,18 +38,12 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-[#0c1a2e] border border-white/20 rounded-xl flex items-center justify-center group-hover:bg-brand-blue transition-colors">
-              <Home className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <span className={`font-bold text-sm sm:text-base leading-tight ${showSolid ? 'text-brand-blue' : 'text-white'}`}>
-                {site.shortName}
-              </span>
-              <span className={`text-xs ${showSolid ? 'text-gray-500' : 'text-white/70'}`}>
-                Consultor Imobiliário
-              </span>
-            </div>
+          <Link to="/" className="shrink-0 group" aria-label="Jair A Costa Consultor Imobiliário">
+            <img
+              src="/logo.png"
+              alt="Jair A Costa - Corretor de Imóveis / Consultor Imobiliário"
+              className="h-11 sm:h-14 w-auto max-w-[200px] sm:max-w-[260px] object-contain object-left group-hover:opacity-90 transition-opacity"
+            />
           </Link>
 
           <div className="hidden lg:flex items-center gap-6">
