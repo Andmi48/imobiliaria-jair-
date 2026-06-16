@@ -1,0 +1,135 @@
+import { Link, useLocation } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Menu, X, Home, Phone } from 'lucide-react'
+import { useSiteContent } from '../context/SiteContentContext'
+
+const navLinks = [
+  { href: '/#inicio', label: 'Início' },
+  { href: '/#imoveis', label: 'Imóveis' },
+  { href: '/venda', label: 'Venda', isRoute: true },
+  { href: '/aluguel', label: 'Aluguel', isRoute: true },
+  { href: '/#sobre', label: 'Sobre' },
+]
+
+export default function Navbar() {
+  const [isOpen, setIsOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const location = useLocation()
+  const isHome = location.pathname === '/'
+  const { site } = useSiteContent()
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    setIsOpen(false)
+  }, [location.pathname])
+
+  const showSolid = scrolled || !isHome
+
+  return (
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        showSolid
+          ? 'bg-white/95 backdrop-blur-md shadow-lg shadow-blue-900/5'
+          : 'bg-transparent'
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-20">
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="w-10 h-10 bg-[#0c1a2e] border border-white/20 rounded-xl flex items-center justify-center group-hover:bg-brand-blue transition-colors">
+              <Home className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex flex-col">
+              <span className={`font-bold text-sm sm:text-base leading-tight ${showSolid ? 'text-brand-blue' : 'text-white'}`}>
+                {site.shortName}
+              </span>
+              <span className={`text-xs ${showSolid ? 'text-gray-500' : 'text-white/70'}`}>
+                Consultor Imobiliário
+              </span>
+            </div>
+          </Link>
+
+          <div className="hidden lg:flex items-center gap-6">
+            {navLinks.map((link) =>
+              link.isRoute ? (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  className={`text-sm font-medium transition-colors hover:text-brand-red ${
+                    showSolid ? 'text-gray-700' : 'text-white/90'
+                  } ${location.pathname === link.href ? 'text-brand-red' : ''}`}
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className={`text-sm font-medium transition-colors hover:text-brand-red ${
+                    showSolid ? 'text-gray-700' : 'text-white/90'
+                  }`}
+                >
+                  {link.label}
+                </a>
+              )
+            )}
+            <a
+              href="/#contato"
+              className="flex items-center gap-2 bg-brand-red hover:bg-brand-red-dark text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-all"
+            >
+              <Phone className="w-4 h-4" />
+              Contato
+            </a>
+          </div>
+
+          <button
+            type="button"
+            className={`lg:hidden p-2 rounded-lg ${showSolid ? 'text-gray-700' : 'text-white'}`}
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label="Menu"
+          >
+            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+      </div>
+
+      {isOpen && (
+        <div className="lg:hidden bg-white border-t shadow-xl">
+          <div className="px-4 py-6 space-y-4">
+            {navLinks.map((link) =>
+              link.isRoute ? (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  className="block text-gray-700 font-medium hover:text-brand-red transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="block text-gray-700 font-medium hover:text-brand-red transition-colors"
+                >
+                  {link.label}
+                </a>
+              )
+            )}
+            <a
+              href="/#contato"
+              className="flex items-center justify-center gap-2 bg-brand-red hover:bg-brand-red-dark text-white px-5 py-3 rounded-full text-sm font-semibold transition-all"
+            >
+              <Phone className="w-4 h-4" />
+              Contato
+            </a>
+          </div>
+        </div>
+      )}
+    </nav>
+  )
+}
