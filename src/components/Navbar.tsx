@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { Menu, X, Phone } from 'lucide-react'
+import { useSiteContent } from '../context/SiteContentContext'
 
 const navLinks = [
   { href: '/#inicio', label: 'Início' },
@@ -10,52 +11,37 @@ const navLinks = [
   { href: '/#sobre', label: 'Sobre' },
 ]
 
-const logoSources = ['/logo.png', '/logo.webp', '/logo.jpg', '/logo.svg']
-
 export default function Navbar() {
+  const { site } = useSiteContent()
   const [isOpen, setIsOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const [logoIndex, setLogoIndex] = useState(0)
+  const [logoFailed, setLogoFailed] = useState(false)
   const location = useLocation()
-  const isHome = location.pathname === '/'
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  const logoSrc = site.logoUrl || '/logo.png'
 
   useEffect(() => {
     setIsOpen(false)
   }, [location.pathname])
 
-  const showSolid = scrolled || !isHome
-  const logoFailed = logoIndex >= logoSources.length
+  useEffect(() => {
+    setLogoFailed(false)
+  }, [logoSrc])
 
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        showSolid
-          ? 'bg-white/95 backdrop-blur-md shadow-lg shadow-blue-900/5'
-          : 'bg-transparent'
-      }`}
-    >
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-lg shadow-blue-900/5 border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <Link to="/" className="shrink-0 group" aria-label="Jair A Costa Consultor Imobiliário">
             {logoFailed ? (
-              <div className={`leading-tight ${showSolid ? 'text-brand-blue' : 'text-white'}`}>
+              <div className="leading-tight text-brand-blue">
                 <p className="text-base sm:text-lg font-bold">Jair A Costa</p>
-                <p className={`text-[10px] sm:text-xs ${showSolid ? 'text-gray-500' : 'text-white/80'}`}>
-                  Consultor Imobiliário
-                </p>
+                <p className="text-[10px] sm:text-xs text-gray-500">Consultor Imobiliário</p>
               </div>
             ) : (
               <img
-                src={logoSources[logoIndex]}
+                src={logoSrc}
                 alt="Jair A Costa - Corretor de Imóveis / Consultor Imobiliário"
-                onError={() => setLogoIndex((current) => current + 1)}
-                className="h-12 sm:h-16 w-auto max-w-[220px] sm:max-w-[300px] object-contain object-left group-hover:opacity-90 transition-opacity"
+                onError={() => setLogoFailed(true)}
+                className="h-14 sm:h-[72px] w-auto max-w-[240px] sm:max-w-[320px] object-contain object-left group-hover:opacity-95 transition-opacity"
               />
             )}
           </Link>
@@ -66,9 +52,9 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   to={link.href}
-                  className={`text-sm font-medium transition-colors hover:text-brand-red ${
-                    showSolid ? 'text-gray-700' : 'text-white/90'
-                  } ${location.pathname === link.href ? 'text-brand-red' : ''}`}
+                  className={`text-sm font-medium transition-colors hover:text-brand-red text-gray-700 ${
+                    location.pathname === link.href ? 'text-brand-red' : ''
+                  }`}
                 >
                   {link.label}
                 </Link>
@@ -76,9 +62,7 @@ export default function Navbar() {
                 <a
                   key={link.href}
                   href={link.href}
-                  className={`text-sm font-medium transition-colors hover:text-brand-red ${
-                    showSolid ? 'text-gray-700' : 'text-white/90'
-                  }`}
+                  className="text-sm font-medium transition-colors hover:text-brand-red text-gray-700"
                 >
                   {link.label}
                 </a>
@@ -95,7 +79,7 @@ export default function Navbar() {
 
           <button
             type="button"
-            className={`lg:hidden p-2 rounded-lg ${showSolid ? 'text-gray-700' : 'text-white'}`}
+            className="lg:hidden p-2 rounded-lg text-gray-700"
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Menu"
           >

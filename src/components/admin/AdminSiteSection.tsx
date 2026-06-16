@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useSiteContent } from '../../context/SiteContentContext'
 import type { SiteConfig } from '../../types/content'
-import { adminInputClass, adminLabelClass } from './AdminFields'
+import ImageField, { adminInputClass, adminLabelClass } from './AdminFields'
 
 export default function AdminSiteSection() {
   const { site, updateSite } = useSiteContent()
@@ -23,6 +23,18 @@ export default function AdminSiteSection() {
       <div>
         <h2 className="text-xl font-bold text-gray-900">Dados da empresa</h2>
         <p className="text-sm text-gray-500">Informações exibidas no rodapé, contato e WhatsApp.</p>
+      </div>
+
+      <div className="rounded-xl border border-gray-200 p-4 sm:p-5 bg-gray-50">
+        <ImageField
+          label="Logo do site (use o arquivo original, sem alterações)"
+          value={form.logoUrl ?? ''}
+          onChange={(value) => update('logoUrl', value)}
+          previewClassName="h-24 w-auto max-w-full object-contain rounded-lg border border-gray-200 bg-white p-2"
+        />
+        <p className="text-xs text-gray-500 mt-2">
+          Envie o PNG ou JPG original da logo. Ela aparece no menu branco do topo do site.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

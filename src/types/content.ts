@@ -17,6 +17,7 @@ export interface SiteConfig {
   name: string
   shortName: string
   creci: string
+  logoUrl?: string
   address: {
     street: string
     city: string
