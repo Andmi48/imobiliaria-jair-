@@ -55,7 +55,7 @@ export default function Navbar() {
                 src={logoSources[logoIndex]}
                 alt="Jair A Costa - Corretor de Imóveis / Consultor Imobiliário"
                 onError={() => setLogoIndex((current) => current + 1)}
-                className="h-11 sm:h-14 w-auto max-w-[200px] sm:max-w-[260px] object-contain object-left group-hover:opacity-90 transition-opacity"
+                className="h-12 sm:h-16 w-auto max-w-[220px] sm:max-w-[300px] object-contain object-left group-hover:opacity-90 transition-opacity"
               />
             )}
           </Link>
