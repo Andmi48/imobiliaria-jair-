@@ -7,7 +7,7 @@ interface LegalPageLayoutProps {
 
 export default function LegalPageLayout({ title, children }: LegalPageLayoutProps) {
   return (
-    <div className="pt-28 pb-20 bg-white min-h-screen">
+    <div className="pt-20 pb-20 bg-white min-h-screen">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <Link to="/" className="text-sm text-brand-blue hover:underline mb-6 inline-block">
           ← Voltar ao início

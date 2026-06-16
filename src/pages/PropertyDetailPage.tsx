@@ -18,7 +18,7 @@ export default function PropertyDetailPage() {
   const backLink = property.type === 'Venda' ? '/venda' : '/aluguel'
 
   return (
-    <div className="pt-28 pb-24 bg-white min-h-screen">
+    <div className="pt-20 pb-24 bg-white min-h-screen">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <Link
           to={backLink}

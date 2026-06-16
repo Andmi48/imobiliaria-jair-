@@ -43,7 +43,7 @@ export default function ListingsPage({ type }: ListingsPageProps) {
       : 'Todos os imóveis disponíveis para locação.'
 
   return (
-    <div className="pt-28 pb-24 bg-gray-50 min-h-screen">
+    <div className="pt-20 pb-24 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">{title}</h1>
