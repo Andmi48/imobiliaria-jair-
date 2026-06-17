@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSiteContent } from '../../context/SiteContentContext'
 import ImageField, { adminInputClass, adminLabelClass } from './AdminFields'
 
@@ -6,6 +6,10 @@ export default function AdminHeroSection() {
   const { hero, updateHero } = useSiteContent()
   const [form, setForm] = useState(hero)
   const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    setForm(hero)
+  }, [hero])
 
   const handleSave = () => {
     updateHero(form)

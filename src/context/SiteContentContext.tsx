@@ -17,9 +17,10 @@ import {
   loadStoredContent,
   saveStoredContent,
 } from '../utils/storage'
-import { normalizeSiteContent } from '../utils/contentMerge'
+import { mergeSiteContent, normalizeSiteContent } from '../utils/contentMerge'
 import { fetchCloudContent, saveCloudContent } from '../services/contentApi'
 import { getAdminSyncPassword, isAdminSessionActive } from '../config/admin'
+import { useAdminAuth } from './AdminAuthContext'
 
 interface SiteContentContextValue {
   content: SiteContent
@@ -30,7 +31,7 @@ interface SiteContentContextValue {
   about: AboutContent
   testimonials: Testimonial[]
   getPropertyById: (id: number) => Property | undefined
-  updateSite: (site: SiteConfig) => void
+  updateSite: (site: SiteConfig | ((current: SiteConfig) => SiteConfig)) => void
   updateHero: (hero: HeroContent) => void
   updateAbout: (about: AboutContent) => void
   updateTestimonials: (testimonials: Testimonial[]) => void
@@ -42,39 +43,101 @@ interface SiteContentContextValue {
   exportContent: () => string
   syncNow: () => Promise<void>
   lastSyncStatus: 'idle' | 'syncing' | 'ok' | 'error'
+  lastSyncError: string | null
 }
 
 const SiteContentContext = createContext<SiteContentContextValue | null>(null)
 
 function getInitialContent(): SiteContent {
-  return normalizeSiteContent(loadStoredContent() ?? cloneDefaultContent())
+  if (isAdminSessionActive()) {
+    return normalizeSiteContent(loadStoredContent() ?? cloneDefaultContent())
+  }
+  return cloneDefaultContent()
 }
 
 export function SiteContentProvider({ children }: { children: ReactNode }) {
+  const { isAuthenticated } = useAdminAuth()
   const [content, setContent] = useState<SiteContent>(getInitialContent)
   const [lastSyncStatus, setLastSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'error'>('idle')
+  const [lastSyncError, setLastSyncError] = useState<string | null>(null)
+
+  const contentRef = useRef(content)
   const didHydrateFromCloud = useRef(false)
   const isFirstRender = useRef(true)
+  const isHydrating = useRef(false)
+  const wasAuthenticated = useRef(isAuthenticated)
 
   useEffect(() => {
-    saveStoredContent(content)
+    contentRef.current = content
   }, [content])
 
   useEffect(() => {
-    let cancelled = false
+    if (!isAdminSessionActive()) return
 
-    const load = async () => {
-      const cloud = await fetchCloudContent()
-      if (!cloud || cancelled) return
-      setContent(cloud)
-      didHydrateFromCloud.current = true
+    const saved = saveStoredContent(content)
+    if (!saved) {
+      setLastSyncStatus('error')
+      setLastSyncError(
+        'Memória do navegador cheia. Use fotos menores ou envie para o armazenamento online.',
+      )
+    }
+  }, [content])
+
+  const publishToCloud = useCallback(async (next: SiteContent): Promise<boolean> => {
+    if (!isAdminSessionActive()) return false
+
+    setLastSyncStatus('syncing')
+    setLastSyncError(null)
+
+    const result = await saveCloudContent(next, getAdminSyncPassword())
+    if (result.ok) {
+      setLastSyncStatus('ok')
+      setLastSyncError(null)
+      return true
     }
 
-    load()
-    return () => {
-      cancelled = true
-    }
+    setLastSyncStatus('error')
+    setLastSyncError(result.error)
+    return false
   }, [])
+
+  const hydrateFromCloud = useCallback(async () => {
+    if (isHydrating.current) return
+    isHydrating.current = true
+
+    try {
+      const cloud = await fetchCloudContent()
+      if (!cloud) return
+
+      if (isAdminSessionActive()) {
+        const local = loadStoredContent()
+        const merged = mergeSiteContent(local, cloud, contentRef.current)
+        setContent(merged)
+        didHydrateFromCloud.current = true
+
+        const cloudNormalized = normalizeSiteContent(cloud)
+        if (JSON.stringify(merged) !== JSON.stringify(cloudNormalized)) {
+          await publishToCloud(merged)
+        }
+      } else {
+        setContent(normalizeSiteContent(cloud))
+        didHydrateFromCloud.current = true
+      }
+    } finally {
+      isHydrating.current = false
+    }
+  }, [publishToCloud])
+
+  useEffect(() => {
+    void hydrateFromCloud()
+  }, [hydrateFromCloud])
+
+  useEffect(() => {
+    if (isAuthenticated && !wasAuthenticated.current) {
+      void hydrateFromCloud()
+    }
+    wasAuthenticated.current = isAuthenticated
+  }, [isAuthenticated, hydrateFromCloud])
 
   const persist = useCallback((next: SiteContent) => {
     setContent(next)
@@ -86,50 +149,56 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   )
 
   const updateSite = useCallback(
-    (site: SiteConfig) => persist({ ...content, site }),
-    [content, persist],
+    (siteOrFn: SiteConfig | ((current: SiteConfig) => SiteConfig)) => {
+      const current = contentRef.current
+      const nextSite = typeof siteOrFn === 'function' ? siteOrFn(current.site) : siteOrFn
+      persist({ ...current, site: nextSite })
+    },
+    [persist],
   )
 
   const updateHero = useCallback(
-    (hero: HeroContent) => persist({ ...content, hero }),
-    [content, persist],
+    (hero: HeroContent) => persist({ ...contentRef.current, hero }),
+    [persist],
   )
 
   const updateAbout = useCallback(
-    (about: AboutContent) => persist({ ...content, about }),
-    [content, persist],
+    (about: AboutContent) => persist({ ...contentRef.current, about }),
+    [persist],
   )
 
   const updateTestimonials = useCallback(
-    (testimonials: Testimonial[]) => persist({ ...content, testimonials }),
-    [content, persist],
+    (testimonials: Testimonial[]) => persist({ ...contentRef.current, testimonials }),
+    [persist],
   )
 
   const updatePropertyOptions = useCallback(
-    (propertyOptions: PropertyOptionsConfig) => persist({ ...content, propertyOptions }),
-    [content, persist],
+    (propertyOptions: PropertyOptionsConfig) => persist({ ...contentRef.current, propertyOptions }),
+    [persist],
   )
 
   const saveProperty = useCallback(
     (property: Property) => {
-      const exists = content.properties.some((item) => item.id === property.id)
+      const current = contentRef.current
+      const exists = current.properties.some((item) => item.id === property.id)
       const properties = exists
-        ? content.properties.map((item) => (item.id === property.id ? property : item))
-        : [...content.properties, property]
+        ? current.properties.map((item) => (item.id === property.id ? property : item))
+        : [...current.properties, property]
 
-      persist({ ...content, properties })
+      persist({ ...current, properties })
     },
-    [content, persist],
+    [persist],
   )
 
   const deleteProperty = useCallback(
     (id: number) => {
+      const current = contentRef.current
       persist({
-        ...content,
-        properties: content.properties.filter((property) => property.id !== id),
+        ...current,
+        properties: current.properties.filter((property) => property.id !== id),
       })
     },
-    [content, persist],
+    [persist],
   )
 
   const importContent = useCallback((next: SiteContent) => {
@@ -144,12 +213,8 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const exportContent = useCallback(() => JSON.stringify(content, null, 2), [content])
 
   const syncNow = useCallback(async () => {
-    if (!isAdminSessionActive()) return
-
-    setLastSyncStatus('syncing')
-    const ok = await saveCloudContent(content, getAdminSyncPassword())
-    setLastSyncStatus(ok ? 'ok' : 'error')
-  }, [content])
+    await publishToCloud(contentRef.current)
+  }, [publishToCloud])
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -158,10 +223,11 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     }
 
     if (didHydrateFromCloud.current) {
-      // evita re-salvar imediatamente após puxar do cloud
       didHydrateFromCloud.current = false
       return
     }
+
+    if (!isAdminSessionActive()) return
 
     void syncNow()
   }, [content, syncNow])
@@ -188,6 +254,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       exportContent,
       syncNow,
       lastSyncStatus,
+      lastSyncError,
     }),
     [
       content,
@@ -204,6 +271,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       exportContent,
       syncNow,
       lastSyncStatus,
+      lastSyncError,
     ],
   )
 

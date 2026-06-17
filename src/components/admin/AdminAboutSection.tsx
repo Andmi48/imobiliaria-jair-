@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSiteContent } from '../../context/SiteContentContext'
 import ImageField, { adminInputClass, adminLabelClass } from './AdminFields'
 
@@ -6,6 +6,10 @@ export default function AdminAboutSection() {
   const { about, updateAbout } = useSiteContent()
   const [form, setForm] = useState(about)
   const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    setForm(about)
+  }, [about])
 
   const handleSave = () => {
     updateAbout(form)

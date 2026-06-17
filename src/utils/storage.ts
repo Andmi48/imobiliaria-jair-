@@ -14,8 +14,13 @@ export function loadStoredContent(): SiteContent | null {
   }
 }
 
-export function saveStoredContent(content: SiteContent) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(content))
+export function saveStoredContent(content: SiteContent): boolean {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(content))
+    return true
+  } catch {
+    return false
+  }
 }
 
 export function clearStoredContent() {

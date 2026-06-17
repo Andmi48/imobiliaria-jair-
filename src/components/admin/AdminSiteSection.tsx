@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSiteContent } from '../../context/SiteContentContext'
 import type { SiteConfig } from '../../types/content'
 import ImageField, { adminInputClass, adminLabelClass } from './AdminFields'
@@ -7,6 +7,10 @@ export default function AdminSiteSection() {
   const { site, updateSite } = useSiteContent()
   const [form, setForm] = useState<SiteConfig>(site)
   const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    setForm(site)
+  }, [site])
 
   const update = <K extends keyof SiteConfig>(key: K, value: SiteConfig[K]) => {
     setForm((current) => ({ ...current, [key]: value }))

@@ -1,13 +1,17 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ImagePlus, Trash2 } from 'lucide-react'
 import { useSiteContent } from '../../context/SiteContentContext'
-import { uploadPropertyImageWithFallback } from '../../services/contentApi'
+import { uploadSiteLogo } from '../../services/contentApi'
 
 export default function AdminLogoSection() {
-  const { site, updateSite } = useSiteContent()
+  const { site, updateSite, lastSyncStatus, lastSyncError } = useSiteContent()
   const [logoUrl, setLogoUrl] = useState(site.logoUrl ?? '')
   const [uploading, setUploading] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setLogoUrl(site.logoUrl ?? '')
+  }, [site.logoUrl])
 
   const handleFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -15,24 +19,30 @@ export default function AdminLogoSection() {
     if (!file) return
 
     setUploading(true)
+    setError(null)
+
     try {
-      const url = await uploadPropertyImageWithFallback(file)
+      const url = await uploadSiteLogo(file)
       setLogoUrl(url)
-      setSaved(false)
+      updateSite((current) => ({ ...current, logoUrl: url }))
+    } catch (uploadError) {
+      const message = uploadError instanceof Error ? uploadError.message : 'Falha ao enviar logo.'
+      setError(message)
     } finally {
       setUploading(false)
     }
   }
 
   const handleSave = () => {
-    updateSite({ ...site, logoUrl: logoUrl.trim() || undefined })
-    setSaved(true)
+    if (!logoUrl.trim()) return
+    setError(null)
+    updateSite((current) => ({ ...current, logoUrl: logoUrl.trim() }))
   }
 
   const handleRemove = () => {
     setLogoUrl('')
-    updateSite({ ...site, logoUrl: undefined })
-    setSaved(true)
+    setError(null)
+    updateSite((current) => ({ ...current, logoUrl: undefined }))
   }
 
   return (
@@ -40,8 +50,8 @@ export default function AdminLogoSection() {
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Logo do site</h2>
         <p className="text-sm text-gray-500 mt-1">
-          Envie o arquivo original da sua logo (PNG ou JPG). O site usa exatamente o arquivo que você
-          enviar, sem alteração.
+          Envie o arquivo original da sua logo (PNG ou JPG). Ela é salva no armazenamento online e
+          publicada automaticamente para todos os visitantes.
         </p>
       </div>
 
@@ -60,7 +70,7 @@ export default function AdminLogoSection() {
 
         <label className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-brand-red hover:bg-brand-red-dark text-white font-semibold cursor-pointer transition-colors">
           <ImagePlus className="w-5 h-5" />
-          {uploading ? 'Enviando...' : 'Escolher arquivo da logo'}
+          {uploading ? 'Enviando e publicando...' : 'Escolher arquivo da logo'}
           <input
             type="file"
             accept="image/png,image/jpeg,image/jpg,image/webp"
@@ -73,6 +83,18 @@ export default function AdminLogoSection() {
         <p className="text-xs text-gray-500 mt-3">PNG, JPG ou WEBP — use o arquivo original da sua logo</p>
       </div>
 
+      {(error || lastSyncStatus === 'error') && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {error ?? lastSyncError ?? 'Erro ao publicar a logo.'}
+        </div>
+      )}
+
+      {lastSyncStatus === 'ok' && logoUrl && (
+        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+          Logo publicada no site com sucesso.
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"
@@ -80,7 +102,7 @@ export default function AdminLogoSection() {
           disabled={!logoUrl || uploading}
           className="px-6 py-3 rounded-xl bg-brand-blue text-white font-semibold hover:bg-brand-blue-dark disabled:opacity-50"
         >
-          Salvar logo no site
+          Republicar logo
         </button>
 
         {logoUrl && (
@@ -93,8 +115,6 @@ export default function AdminLogoSection() {
             Remover logo
           </button>
         )}
-
-        {saved && <span className="text-sm text-green-600 font-medium">Logo salva com sucesso!</span>}
       </div>
 
       <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 text-sm text-gray-600">

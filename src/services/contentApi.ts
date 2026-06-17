@@ -1,6 +1,7 @@
 import type { SiteContent } from '../types/content'
 import { isCloudEnabled, supabase } from '../lib/supabase'
 import { normalizeSiteContent } from '../utils/contentMerge'
+import { validateContentForCloud } from '../utils/contentSanitize'
 
 function isValidContent(data: unknown): data is SiteContent {
   if (!data || typeof data !== 'object') return false
@@ -20,18 +21,35 @@ export async function fetchCloudContent(): Promise<SiteContent | null> {
   return isValidContent(data) ? normalizeSiteContent(data) : null
 }
 
+export type SaveCloudResult = { ok: true } | { ok: false; error: string }
+
 export async function saveCloudContent(
   content: SiteContent,
   adminPassword: string,
-): Promise<boolean> {
-  if (!isCloudEnabled() || !supabase) return false
+): Promise<SaveCloudResult> {
+  if (!isCloudEnabled() || !supabase) {
+    return { ok: false, error: 'Supabase não configurado. Verifique as variáveis na Vercel.' }
+  }
+
+  const validationError = validateContentForCloud(content)
+  if (validationError) {
+    return { ok: false, error: validationError }
+  }
 
   const { data, error } = await supabase.rpc('save_site_content', {
-    content,
+    content: normalizeSiteContent(content),
     admin_password: adminPassword,
   })
 
-  return !error && data === true
+  if (error) {
+    return { ok: false, error: error.message }
+  }
+
+  if (data !== true) {
+    return { ok: false, error: 'Senha de publicação incorreta ou permissão negada no Supabase.' }
+  }
+
+  return { ok: true }
 }
 
 export async function uploadPropertyImage(file: File): Promise<string | null> {
@@ -49,6 +67,28 @@ export async function uploadPropertyImage(file: File): Promise<string | null> {
 
   const { data } = supabase.storage.from('property-images').getPublicUrl(filePath)
   return data.publicUrl
+}
+
+/** Logo do site — sempre no Supabase (sem base64), com cache bust. */
+export async function uploadSiteLogo(file: File): Promise<string> {
+  if (!isCloudEnabled() || !supabase) {
+    throw new Error('Supabase não configurado. Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY na Vercel.')
+  }
+
+  const extension = (file.name.split('.').pop() || 'png').toLowerCase()
+  const filePath = `logos/site-logo.${extension}`
+
+  const { error } = await supabase.storage.from('property-images').upload(filePath, file, {
+    cacheControl: '60',
+    upsert: true,
+  })
+
+  if (error) {
+    throw new Error(`Falha ao enviar logo: ${error.message}`)
+  }
+
+  const { data } = supabase.storage.from('property-images').getPublicUrl(filePath)
+  return `${data.publicUrl}?v=${Date.now()}`
 }
 
 function readFileAsDataUrl(file: File): Promise<string> {

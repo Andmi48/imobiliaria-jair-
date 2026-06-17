@@ -15,8 +15,8 @@ import AdminRoute from './components/admin/AdminRoute'
 
 function App() {
   return (
-    <SiteContentProvider>
-      <AdminAuthProvider>
+    <AdminAuthProvider>
+      <SiteContentProvider>
         <FavoritesProvider>
           <BrowserRouter>
             <Routes>
@@ -42,8 +42,8 @@ function App() {
             </Routes>
           </BrowserRouter>
         </FavoritesProvider>
-      </AdminAuthProvider>
-    </SiteContentProvider>
+      </SiteContentProvider>
+    </AdminAuthProvider>
   )
 }
 

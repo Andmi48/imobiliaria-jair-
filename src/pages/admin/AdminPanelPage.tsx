@@ -14,6 +14,7 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import { useAdminAuth } from '../../context/AdminAuthContext'
+import { useSiteContent } from '../../context/SiteContentContext'
 import AdminPropertiesSection from '../../components/admin/AdminPropertiesSection'
 import AdminPropertyOptionsSection from '../../components/admin/AdminPropertyOptionsSection'
 import AdminLogoSection from '../../components/admin/AdminLogoSection'
@@ -22,6 +23,7 @@ import AdminHeroSection from '../../components/admin/AdminHeroSection'
 import AdminAboutSection from '../../components/admin/AdminAboutSection'
 import AdminTestimonialsSection from '../../components/admin/AdminTestimonialsSection'
 import AdminBackupSection from '../../components/admin/AdminBackupSection'
+import AdminSyncBanner from '../../components/admin/AdminSyncBanner'
 
 type AdminTab = 'overview' | 'logo' | 'properties' | 'property-options' | 'site' | 'hero' | 'about' | 'testimonials' | 'backup'
 
@@ -39,6 +41,7 @@ const tabs: Array<{ id: AdminTab; label: string; icon: typeof Home }> = [
 
 export default function AdminPanelPage() {
   const { logout } = useAdminAuth()
+  const { lastSyncStatus } = useSiteContent()
   const [activeTab, setActiveTab] = useState<AdminTab>('overview')
 
   return (
@@ -50,6 +53,15 @@ export default function AdminPanelPage() {
             <h1 className="text-lg font-bold">Jair A Costa — Controle do site</h1>
           </div>
           <div className="flex items-center gap-2">
+            {lastSyncStatus === 'syncing' && (
+              <span className="text-xs text-white/70 hidden sm:inline">Sincronizando...</span>
+            )}
+            {lastSyncStatus === 'error' && (
+              <span className="text-xs text-red-300 hidden sm:inline">Erro ao publicar</span>
+            )}
+            {lastSyncStatus === 'ok' && (
+              <span className="text-xs text-green-300 hidden sm:inline">Publicado</span>
+            )}
             <Link
               to="/"
               target="_blank"
@@ -93,13 +105,14 @@ export default function AdminPanelPage() {
           </aside>
 
           <main className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8">
+            <AdminSyncBanner />
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">Bem-vindo ao painel</h2>
                   <p className="text-gray-600 mt-2">
                     Aqui você controla 100% do site: imóveis, fotos, textos, contatos e depoimentos.
-                    As alterações são salvas automaticamente neste navegador.
+                    Ao salvar, as alterações são publicadas automaticamente na nuvem para todos os visitantes.
                   </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

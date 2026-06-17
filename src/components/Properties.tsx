@@ -5,6 +5,7 @@ import { useSiteContent } from '../context/SiteContentContext'
 export default function Properties() {
   const { properties } = useSiteContent()
   const featured = properties.filter((p) => p.featured)
+  const displayed = featured.length > 0 ? featured : properties.slice(0, 6)
 
   return (
     <section id="imoveis" className="py-24 bg-gray-50">
@@ -33,11 +34,15 @@ export default function Properties() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featured.map((property) => (
-            <PropertyCard key={property.id} property={property} />
-          ))}
-        </div>
+        {displayed.length === 0 ? (
+          <p className="text-center text-gray-500">Nenhum imóvel cadastrado no momento.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {displayed.map((property) => (
+              <PropertyCard key={property.id} property={property} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   )
