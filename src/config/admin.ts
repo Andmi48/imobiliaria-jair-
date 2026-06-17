@@ -16,5 +16,6 @@ export function isAdminSessionActive() {
 }
 
 export function getAdminSyncPassword() {
-  return sessionStorage.getItem(SYNC_PASSWORD_KEY) ?? ADMIN_PASSWORD
+  // Sempre usa a senha do build (Vercel), evita sessão antiga com senha diferente
+  return ADMIN_PASSWORD
 }

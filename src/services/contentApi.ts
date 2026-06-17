@@ -46,7 +46,11 @@ export async function saveCloudContent(
   }
 
   if (data !== true) {
-    return { ok: false, error: 'Senha de publicação incorreta ou permissão negada no Supabase.' }
+    return {
+      ok: false,
+      error:
+        'Senha de publicação incorreta ou permissão negada no Supabase. Abra o Supabase → SQL Editor e execute o arquivo supabase/fix-sync-completo.sql',
+    }
   }
 
   return { ok: true }
