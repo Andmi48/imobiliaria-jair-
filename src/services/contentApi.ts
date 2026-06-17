@@ -73,18 +73,19 @@ export async function uploadPropertyImage(file: File): Promise<string | null> {
   return data.publicUrl
 }
 
-/** Logo do site — sempre no Supabase (sem base64), com cache bust. */
+/** Logo do site — arquivo original, sem compressão nem conversão. */
 export async function uploadSiteLogo(file: File): Promise<string> {
   if (!isCloudEnabled() || !supabase) {
     throw new Error('Supabase não configurado. Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY na Vercel.')
   }
 
   const extension = (file.name.split('.').pop() || 'png').toLowerCase()
-  const filePath = `logos/site-logo.${extension}`
+  const filePath = `logos/site-logo-${Date.now()}.${extension}`
 
   const { error } = await supabase.storage.from('property-images').upload(filePath, file, {
-    cacheControl: '60',
-    upsert: true,
+    cacheControl: '31536000',
+    upsert: false,
+    contentType: file.type || `image/${extension === 'jpg' ? 'jpeg' : extension}`,
   })
 
   if (error) {
@@ -92,7 +93,7 @@ export async function uploadSiteLogo(file: File): Promise<string> {
   }
 
   const { data } = supabase.storage.from('property-images').getPublicUrl(filePath)
-  return `${data.publicUrl}?v=${Date.now()}`
+  return data.publicUrl
 }
 
 function readFileAsDataUrl(file: File): Promise<string> {

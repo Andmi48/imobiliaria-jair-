@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSiteContent } from '../../context/SiteContentContext'
 import type { SiteConfig } from '../../types/content'
-import ImageField, { adminInputClass, adminLabelClass } from './AdminFields'
+import { adminInputClass, adminLabelClass } from './AdminFields'
 
 export default function AdminSiteSection() {
   const { site, updateSite } = useSiteContent()
@@ -29,24 +29,21 @@ export default function AdminSiteSection() {
         <p className="text-sm text-gray-500">Informações exibidas no rodapé, contato e WhatsApp.</p>
       </div>
 
-      <div className="rounded-xl border border-gray-200 p-4 sm:p-5">
-        <ImageField
-          label="Logo do site (arquivo original — não altere a imagem)"
-          value={form.logoUrl ?? ''}
-          onChange={(value) => update('logoUrl', value)}
-          previewClassName="h-24 w-auto max-w-full object-contain object-left"
-        />
-        <p className="text-xs text-gray-500 mt-2">
-          Envie o PNG ou JPG original da sua logo. O site usa exatamente este arquivo, sem recriar nem editar.
+      <div className="rounded-xl border border-gray-200 p-4 sm:p-5 bg-gray-50">
+        <p className="text-sm font-medium text-gray-800">Logo do site</p>
+        <p className="text-xs text-gray-500 mt-1 mb-3">
+          Envie e gerencie a logo na aba <strong>Logo</strong> do menu lateral (arquivo original, sem alteração).
         </p>
-        {form.logoUrl && (
-          <button
-            type="button"
-            onClick={() => update('logoUrl', '')}
-            className="mt-2 text-sm text-brand-red hover:underline"
-          >
-            Remover logo atual
-          </button>
+        {form.logoUrl ? (
+          <div className="inline-flex items-center bg-white rounded-lg p-2 border border-gray-200">
+            <img
+              src={form.logoUrl}
+              alt="Logo atual"
+              className="h-12 w-auto max-w-[200px] object-contain object-left"
+            />
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">Nenhuma logo publicada.</p>
         )}
       </div>
 

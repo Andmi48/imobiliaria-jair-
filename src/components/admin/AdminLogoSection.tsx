@@ -55,22 +55,25 @@ export default function AdminLogoSection() {
         </p>
       </div>
 
-      <div className="rounded-2xl border-2 border-dashed border-brand-blue/30 bg-brand-blue/5 p-6 sm:p-8 text-center">
+      <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-white p-6 sm:p-8 text-center">
         {logoUrl ? (
-          <img
-            src={logoUrl}
-            alt="Prévia da logo"
-            className="mx-auto h-24 sm:h-28 w-auto max-w-full object-contain mb-6"
-          />
+          <div className="mb-6 inline-flex items-center justify-center bg-white rounded-lg">
+            <img
+              src={logoUrl}
+              alt="Prévia da logo — igual ao site"
+              decoding="sync"
+              className="h-auto max-h-16 sm:max-h-20 w-auto max-w-full object-contain object-left"
+            />
+          </div>
         ) : (
-          <div className="h-24 sm:h-28 flex items-center justify-center text-gray-400 text-sm mb-6">
+          <div className="h-20 flex items-center justify-center text-gray-400 text-sm mb-6">
             Nenhuma logo enviada ainda
           </div>
         )}
 
         <label className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-brand-red hover:bg-brand-red-dark text-white font-semibold cursor-pointer transition-colors">
           <ImagePlus className="w-5 h-5" />
-          {uploading ? 'Enviando e publicando...' : 'Escolher arquivo da logo'}
+          {uploading ? 'Enviando arquivo original...' : 'Escolher arquivo da logo'}
           <input
             type="file"
             accept="image/png,image/jpeg,image/jpg,image/webp"
@@ -80,7 +83,10 @@ export default function AdminLogoSection() {
           />
         </label>
 
-        <p className="text-xs text-gray-500 mt-3">PNG, JPG ou WEBP — use o arquivo original da sua logo</p>
+        <p className="text-xs text-gray-500 mt-3">
+          Use o <strong>PNG original</strong> (recomendado, com fundo transparente). O sistema não edita, recorta nem
+          recria a imagem — exibe o arquivo exatamente como você enviou.
+        </p>
       </div>
 
       {(error || lastSyncStatus === 'error') && (

@@ -16,7 +16,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [logoFailed, setLogoFailed] = useState(false)
   const location = useLocation()
-  const logoSrc = site.logoUrl?.trim() || '/logo.png'
+  const logoSrc = site.logoUrl?.trim() || ''
 
   useEffect(() => {
     setIsOpen(false)
@@ -31,18 +31,22 @@ export default function Navbar() {
       <div className="flex items-center justify-between h-16 px-3 sm:px-4">
         <Link
           to="/"
-          className="shrink-0 flex items-center h-full p-0 m-0 bg-transparent"
+          className="shrink-0 flex items-center h-full p-0 m-0 bg-white"
           aria-label="Jair A Costa Consultor Imobiliário"
         >
-          {logoFailed ? (
-            <span className="text-base font-bold text-brand-blue leading-none">Jair A Costa</span>
-          ) : (
+          {logoSrc && !logoFailed ? (
             <img
               src={logoSrc}
               alt="Jair A Costa - Corretor de Imóveis / Consultor Imobiliário"
               onError={() => setLogoFailed(true)}
-              className="block h-12 sm:h-14 w-auto max-w-[240px] sm:max-w-[300px] object-contain object-left bg-transparent border-0 outline-none shadow-none p-0 m-0"
+              decoding="sync"
+              className="block h-auto max-h-14 sm:max-h-16 w-auto max-w-[min(100vw-8rem,360px)] object-contain object-left bg-white border-0 outline-none shadow-none p-0 m-0"
+              style={{ imageRendering: 'auto' }}
             />
+          ) : (
+            <span className="text-base font-bold text-brand-blue leading-none whitespace-nowrap">
+              Jair A Costa
+            </span>
           )}
         </Link>
 
