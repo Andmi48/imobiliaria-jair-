@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "setup:env": "vercel env pull .env.local --environment=production --yes",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

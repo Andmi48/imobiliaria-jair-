@@ -20,6 +20,7 @@ import {
 import { mergeSiteContent, normalizeSiteContent } from '../utils/contentMerge'
 import { fetchCloudContent, saveCloudContent } from '../services/contentApi'
 import { getAdminSyncPassword, isAdminSessionActive } from '../config/admin'
+import { isCloudEnabled } from '../lib/supabase'
 import { useAdminAuth } from './AdminAuthContext'
 
 interface SiteContentContextValue {
@@ -44,6 +45,8 @@ interface SiteContentContextValue {
   syncNow: () => Promise<void>
   lastSyncStatus: 'idle' | 'syncing' | 'ok' | 'error'
   lastSyncError: string | null
+  isCloudConfigured: boolean
+  isLoadingFromCloud: boolean
 }
 
 const SiteContentContext = createContext<SiteContentContextValue | null>(null)
@@ -60,6 +63,8 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const [content, setContent] = useState<SiteContent>(getInitialContent)
   const [lastSyncStatus, setLastSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'error'>('idle')
   const [lastSyncError, setLastSyncError] = useState<string | null>(null)
+  const [isLoadingFromCloud, setIsLoadingFromCloud] = useState(isCloudEnabled())
+  const isCloudConfigured = isCloudEnabled()
 
   const contentRef = useRef(content)
   const didHydrateFromCloud = useRef(false)
@@ -105,9 +110,25 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     if (isHydrating.current) return
     isHydrating.current = true
 
+    if (!isCloudConfigured) {
+      setLastSyncStatus('error')
+      setLastSyncError(
+        'Supabase não configurado neste ambiente. Rode: npx vercel env pull .env.local --environment=production --yes e reinicie o servidor (npm run dev).',
+      )
+      setIsLoadingFromCloud(false)
+      isHydrating.current = false
+      return
+    }
+
+    setIsLoadingFromCloud(true)
+
     try {
       const cloud = await fetchCloudContent()
-      if (!cloud) return
+      if (!cloud) {
+        setLastSyncStatus('error')
+        setLastSyncError('Não foi possível carregar dados da nuvem. Verifique o Supabase e execute supabase/fix-sync-completo.sql.')
+        return
+      }
 
       if (isAdminSessionActive()) {
         const local = loadStoredContent()
@@ -124,9 +145,10 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         didHydrateFromCloud.current = true
       }
     } finally {
+      setIsLoadingFromCloud(false)
       isHydrating.current = false
     }
-  }, [publishToCloud])
+  }, [isCloudConfigured, publishToCloud])
 
   useEffect(() => {
     void hydrateFromCloud()
@@ -255,6 +277,8 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       syncNow,
       lastSyncStatus,
       lastSyncError,
+      isCloudConfigured,
+      isLoadingFromCloud,
     }),
     [
       content,
@@ -272,6 +296,8 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       syncNow,
       lastSyncStatus,
       lastSyncError,
+      isCloudConfigured,
+      isLoadingFromCloud,
     ],
   )
 

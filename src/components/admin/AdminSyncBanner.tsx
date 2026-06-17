@@ -1,7 +1,27 @@
 import { useSiteContent } from '../../context/SiteContentContext'
 
 export default function AdminSyncBanner() {
-  const { lastSyncStatus, lastSyncError, syncNow } = useSiteContent()
+  const { lastSyncStatus, lastSyncError, syncNow, isCloudConfigured, isLoadingFromCloud } = useSiteContent()
+
+  if (isLoadingFromCloud) {
+    return (
+      <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 mb-6">
+        Carregando dados da nuvem...
+      </div>
+    )
+  }
+
+  if (!isCloudConfigured) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 mb-6">
+        <p className="font-medium">Ambiente local sem conexão com a nuvem</p>
+        <p className="mt-1">
+          Para ver o mesmo conteúdo do site publicado, crie o arquivo <strong>.env.local</strong> com as
+          variáveis do Supabase (copie da Vercel) e reinicie <strong>npm run dev</strong>.
+        </p>
+      </div>
+    )
+  }
 
   if (lastSyncStatus === 'idle') return null
 
