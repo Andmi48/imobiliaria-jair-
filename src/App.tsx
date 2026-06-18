@@ -15,6 +15,24 @@ import AdminLoginPage from './pages/admin/AdminLoginPage'
 import AdminPanelPage from './pages/admin/AdminPanelPage'
 import AdminRoute from './components/admin/AdminRoute'
 
+function PublicRoutes() {
+  return (
+    <SiteContentGate>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/venda" element={<ListingsPage type="Venda" />} />
+          <Route path="/aluguel" element={<ListingsPage type="Aluguel" />} />
+          <Route path="/imovel/:id" element={<PropertyDetailPage />} />
+          <Route path="/politica-de-cookies" element={<CookiePolicyPage />} />
+          <Route path="/politica-de-privacidade" element={<PrivacyPolicyPage />} />
+          <Route path="/isencao-de-responsabilidade" element={<LegalDisclaimerPage />} />
+        </Route>
+      </Routes>
+    </SiteContentGate>
+  )
+}
+
 function App() {
   return (
     <AdminAuthProvider>
@@ -22,7 +40,6 @@ function App() {
         <FavoritesProvider>
           <BrowserRouter>
             <ScrollManager />
-            <SiteContentGate>
             <Routes>
               <Route path="/acesso" element={<AdminLoginPage />} />
               <Route
@@ -33,18 +50,8 @@ function App() {
                   </AdminRoute>
                 }
               />
-
-              <Route element={<Layout />}>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/venda" element={<ListingsPage type="Venda" />} />
-                <Route path="/aluguel" element={<ListingsPage type="Aluguel" />} />
-                <Route path="/imovel/:id" element={<PropertyDetailPage />} />
-                <Route path="/politica-de-cookies" element={<CookiePolicyPage />} />
-                <Route path="/politica-de-privacidade" element={<PrivacyPolicyPage />} />
-                <Route path="/isencao-de-responsabilidade" element={<LegalDisclaimerPage />} />
-              </Route>
+              <Route path="/*" element={<PublicRoutes />} />
             </Routes>
-            </SiteContentGate>
           </BrowserRouter>
         </FavoritesProvider>
       </SiteContentProvider>

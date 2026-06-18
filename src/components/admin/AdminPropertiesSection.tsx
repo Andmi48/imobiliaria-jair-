@@ -918,9 +918,9 @@ export default function AdminPropertiesSection() {
 
                   <div className="flex items-center gap-3">
 
-                    {property.image ? (
+                    {(property.images?.[0] || property.image) ? (
 
-                      <img src={property.image} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                      <img src={property.images?.[0] || property.image} alt="" className="w-12 h-12 rounded-lg object-cover" />
 
                     ) : (
 

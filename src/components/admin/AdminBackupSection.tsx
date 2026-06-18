@@ -17,7 +17,7 @@ function formatDateTime(iso: string) {
 }
 
 export default function AdminBackupSection() {
-  const { exportContent, importContent, resetToDefaults, syncNow } = useSiteContent()
+  const { exportContent, importContent, resetToDefaults, syncNow, reloadFromCloud } = useSiteContent()
   const fileRef = useRef<HTMLInputElement>(null)
   const [history, setHistory] = useState<ContentHistoryEntry[]>([])
   const [loadingHistory, setLoadingHistory] = useState(true)
@@ -86,7 +86,8 @@ export default function AdminBackupSection() {
     }
 
     await loadHistory()
-    window.location.reload()
+    await reloadFromCloud()
+    alert('Versão restaurada com sucesso!')
   }
 
   return (

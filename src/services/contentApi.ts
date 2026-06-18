@@ -1,4 +1,5 @@
 import type { SiteContent } from '../types/content'
+import type { ContentHistoryEntry } from '../utils/contentClone'
 import { isCloudEnabled, supabase } from '../lib/supabase'
 import { normalizeSiteContent } from '../utils/contentMerge'
 import { validateContentForCloud } from '../utils/contentSanitize'
@@ -6,19 +7,24 @@ import { validateContentForCloud } from '../utils/contentSanitize'
 function isValidContent(data: unknown): data is SiteContent {
   if (!data || typeof data !== 'object') return false
   const content = data as SiteContent
-  return Boolean(content.site && content.properties && content.hero && content.about)
+  return Boolean(content.site && Array.isArray(content.properties) && content.hero && content.about)
 }
 
-export async function fetchCloudContent(): Promise<SiteContent | null> {
-  if (!isCloudEnabled() || !supabase) return null
+export async function fetchCloudContent(): Promise<{ content: SiteContent | null; error?: string }> {
+  if (!isCloudEnabled() || !supabase) return { content: null }
 
   const { data, error } = await supabase.rpc('get_site_content')
 
-  if (error || !data || typeof data !== 'object' || Object.keys(data).length === 0) {
-    return null
+  if (error) return { content: null, error: error.message }
+  if (data == null || typeof data !== 'object' || Object.keys(data).length === 0) {
+    return { content: null }
   }
 
-  return isValidContent(data) ? normalizeSiteContent(data) : null
+  if (!isValidContent(data)) {
+    return { content: null, error: 'Dados do site inválidos na nuvem.' }
+  }
+
+  return { content: normalizeSiteContent(data) }
 }
 
 export type SaveCloudResult = { ok: true } | { ok: false; error: string }
@@ -49,14 +55,12 @@ export async function saveCloudContent(
     return {
       ok: false,
       error:
-        'Senha de publicação incorreta ou permissão negada no Supabase. Abra o Supabase → SQL Editor e execute o arquivo supabase/fix-sync-completo.sql',
+        'Senha de publicação incorreta ou permissão negada no Supabase. Execute supabase/fix-sync-completo.sql e supabase/content-history.sql.',
     }
   }
 
   return { ok: true }
 }
-
-import type { ContentHistoryEntry } from '../utils/contentClone'
 
 export async function fetchContentHistory(): Promise<ContentHistoryEntry[]> {
   if (!isCloudEnabled() || !supabase) return []
@@ -99,6 +103,7 @@ export async function uploadPropertyImage(file: File): Promise<string | null> {
   const { error } = await supabase.storage.from('property-images').upload(filePath, file, {
     cacheControl: '3600',
     upsert: false,
+    contentType: file.type || `image/${extension === 'jpg' ? 'jpeg' : extension}`,
   })
 
   if (error) return null
@@ -145,6 +150,11 @@ function readFileAsDataUrl(file: File): Promise<string> {
 export async function uploadPropertyImageWithFallback(file: File): Promise<string> {
   const url = await uploadPropertyImage(file)
   if (url) return url
+
+  if (isCloudEnabled()) {
+    throw new Error('Falha ao enviar imagem para o armazenamento online. Verifique o Supabase Storage.')
+  }
+
   return readFileAsDataUrl(file)
 }
 

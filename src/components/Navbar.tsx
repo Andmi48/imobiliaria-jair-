@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Menu, X, Phone } from 'lucide-react'
 import { useSiteContent } from '../context/SiteContentContext'
 
@@ -14,17 +14,12 @@ const navLinks = [
 export default function Navbar() {
   const { site, isReady } = useSiteContent()
   const [isOpen, setIsOpen] = useState(false)
-  const [logoFailed, setLogoFailed] = useState(false)
+  const [failedLogoSrc, setFailedLogoSrc] = useState('')
   const location = useLocation()
   const logoSrc = site.logoUrl?.trim() || ''
+  const logoFailed = failedLogoSrc === logoSrc && logoSrc !== ''
 
-  useEffect(() => {
-    setIsOpen(false)
-  }, [location.pathname])
-
-  useEffect(() => {
-    setLogoFailed(false)
-  }, [logoSrc])
+  const closeMenu = () => setIsOpen(false)
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
@@ -41,9 +36,10 @@ export default function Navbar() {
         >
           {isReady && logoSrc && !logoFailed ? (
             <img
+              key={logoSrc}
               src={logoSrc}
               alt="Jair A Costa - Corretor de Imóveis / Consultor Imobiliário"
-              onError={() => setLogoFailed(true)}
+              onError={() => setFailedLogoSrc(logoSrc)}
               decoding="sync"
               className="block h-auto max-h-14 sm:max-h-16 w-auto max-w-[min(100vw-8rem,360px)] object-contain object-left bg-white border-0 outline-none shadow-none p-0 m-0"
               style={{ imageRendering: 'auto' }}
@@ -106,6 +102,7 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   to={link.href}
+                  onClick={closeMenu}
                   className="block text-gray-700 font-medium hover:text-brand-red transition-colors"
                 >
                   {link.label}
@@ -114,6 +111,7 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   to={link.href}
+                  onClick={closeMenu}
                   className="block text-gray-700 font-medium hover:text-brand-red transition-colors"
                 >
                   {link.label}
@@ -122,6 +120,7 @@ export default function Navbar() {
             )}
             <Link
               to="/#contato"
+              onClick={closeMenu}
               className="flex items-center justify-center gap-2 bg-brand-red hover:bg-brand-red-dark text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-colors"
             >
               <Phone className="w-4 h-4" />

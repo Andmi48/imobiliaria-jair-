@@ -22,9 +22,12 @@ export default function ImageField({
     if (!file) return
 
     void (async () => {
-      const url = await uploadPropertyImageWithFallback(file)
-      onChange(url)
-      return
+      try {
+        const url = await uploadPropertyImageWithFallback(file)
+        onChange(url)
+      } catch (error) {
+        alert(error instanceof Error ? error.message : 'Falha ao enviar imagem.')
+      }
     })()
 
     event.target.value = ''

@@ -1,9 +1,17 @@
 import { Send } from 'lucide-react'
 import { useState } from 'react'
+import { useSiteContent } from '../context/SiteContentContext'
 
 type InterestType = 'comprar' | 'alugar' | 'outro'
 
+const interestLabels: Record<InterestType, string> = {
+  comprar: 'Comprar',
+  alugar: 'Alugar',
+  outro: 'Outro',
+}
+
 export default function Contact() {
+  const { site } = useSiteContent()
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -14,7 +22,17 @@ export default function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    alert('Mensagem enviada! Entraremos em contato em breve.')
+
+    const message = [
+      `Olá! Meu nome é ${formData.firstName} ${formData.lastName}.`,
+      `Email: ${formData.email}`,
+      `Interesse: ${interestLabels[formData.interest]}`,
+      '',
+      formData.message,
+    ].join('\n')
+
+    window.open(`https://wa.me/${site.whatsapp}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer')
+
     setFormData({
       firstName: '',
       lastName: '',

@@ -52,6 +52,8 @@ export default function PropertyImagesManager({
         uploaded.push(...batch)
       }
       addUrls(uploaded)
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Falha ao enviar imagens.')
     } finally {
       setUploading(false)
       setUploadProgress('')

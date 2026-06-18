@@ -7,16 +7,21 @@ interface PropertyCardProps {
   property: Property
 }
 
+function getPropertyCoverImage(property: Property): string {
+  return property.images?.[0] || property.image || ''
+}
+
 export default function PropertyCard({ property }: PropertyCardProps) {
   const { favorites, toggleFavorite } = useFavorites()
   const isFavorite = favorites.includes(property.id)
+  const coverImage = getPropertyCoverImage(property)
 
   return (
     <article className="group relative bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
       <Link to={`/imovel/${property.id}`} className="block">
         <div className="relative overflow-hidden aspect-[4/3]">
           <img
-            src={property.image}
+            src={coverImage}
             alt={property.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"

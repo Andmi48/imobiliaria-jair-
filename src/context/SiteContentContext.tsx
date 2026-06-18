@@ -49,6 +49,7 @@ interface SiteContentContextValue {
   exportContent: () => string
   undo: () => void
   syncNow: () => Promise<void>
+  reloadFromCloud: () => Promise<void>
   lastSyncStatus: 'idle' | 'syncing' | 'ok' | 'error'
   lastSyncError: string | null
   isCloudConfigured: boolean
@@ -151,13 +152,25 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     setIsLoadingFromCloud(true)
 
     try {
-      const cloud = await fetchCloudContent()
-      if (!cloud) {
+      const { content: cloud, error } = await fetchCloudContent()
+
+      if (error) {
         setLastSyncStatus('error')
         setLastSyncError(
-          'Não foi possível carregar dados da nuvem. Execute supabase/fix-sync-completo.sql no Supabase.',
+          `Não foi possível carregar dados da nuvem: ${error}. Execute supabase/fix-sync-completo.sql no Supabase.`,
         )
         setContent(getBootstrapContent())
+        return
+      }
+
+      if (!cloud) {
+        const bootstrap = getBootstrapContent()
+        setContent(bootstrap)
+        didHydrateFromCloud.current = true
+
+        if (isAdminSessionActive()) {
+          await publishToCloud(bootstrap)
+        }
         return
       }
 
@@ -301,6 +314,11 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     await publishToCloud(contentRef.current)
   }, [publishToCloud])
 
+  const reloadFromCloud = useCallback(async () => {
+    skipUndoPush.current = true
+    await hydrateFromCloud()
+  }, [hydrateFromCloud])
+
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false
@@ -341,6 +359,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       exportContent,
       undo,
       syncNow,
+      reloadFromCloud,
       lastSyncStatus,
       lastSyncError,
       isCloudConfigured,
@@ -363,6 +382,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       exportContent,
       undo,
       syncNow,
+      reloadFromCloud,
       lastSyncStatus,
       lastSyncError,
       isCloudConfigured,
