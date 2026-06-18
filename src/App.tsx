@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { FavoritesProvider } from './context/FavoritesContext'
 import { AdminAuthProvider } from './context/AdminAuthContext'
 import { SiteContentProvider } from './context/SiteContentContext'
+import ScrollManager from './components/ScrollManager'
 import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
 import ListingsPage from './pages/ListingsPage'
@@ -19,6 +20,7 @@ function App() {
       <SiteContentProvider>
         <FavoritesProvider>
           <BrowserRouter>
+            <ScrollManager />
             <Routes>
               <Route path="/acesso" element={<AdminLoginPage />} />
               <Route

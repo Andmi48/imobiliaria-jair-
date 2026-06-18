@@ -6,6 +6,10 @@ html {
   scroll-behavior: smooth;
 }
 
+[id] {
+  scroll-margin-top: 4rem;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', system-ui, sans-serif;

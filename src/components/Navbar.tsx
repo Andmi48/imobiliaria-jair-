@@ -31,6 +31,11 @@ export default function Navbar() {
       <div className="flex items-center justify-between h-16 px-3 sm:px-4">
         <Link
           to="/"
+          onClick={() => {
+            if (location.pathname === '/' && !location.hash) {
+              window.scrollTo({ top: 0, behavior: 'auto' })
+            }
+          }}
           className="shrink-0 flex items-center h-full p-0 m-0 bg-white"
           aria-label="Jair A Costa Consultor Imobiliário"
         >
@@ -63,22 +68,22 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ) : (
-              <a
+              <Link
                 key={link.href}
-                href={link.href}
+                to={link.href}
                 className="text-sm font-medium transition-colors hover:text-brand-red text-gray-700"
               >
                 {link.label}
-              </a>
+              </Link>
             )
           )}
-          <a
-            href="/#contato"
+          <Link
+            to="/#contato"
             className="flex items-center gap-2 bg-brand-red hover:bg-brand-red-dark text-white px-4 py-2 rounded-full text-sm font-semibold transition-colors"
           >
             <Phone className="w-4 h-4" />
             Contato
-          </a>
+          </Link>
         </div>
 
         <button
@@ -104,22 +109,22 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ) : (
-                <a
+                <Link
                   key={link.href}
-                  href={link.href}
+                  to={link.href}
                   className="block text-gray-700 font-medium hover:text-brand-red transition-colors"
                 >
                   {link.label}
-                </a>
+                </Link>
               )
             )}
-            <a
-              href="/#contato"
+            <Link
+              to="/#contato"
               className="flex items-center justify-center gap-2 bg-brand-red hover:bg-brand-red-dark text-white px-5 py-2.5 rounded-full text-sm font-semibold transition-colors"
             >
               <Phone className="w-4 h-4" />
               Contato
-            </a>
+            </Link>
           </div>
         </div>
       )}
