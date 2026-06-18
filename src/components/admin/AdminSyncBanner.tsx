@@ -1,9 +1,9 @@
 import { useSiteContent } from '../../context/SiteContentContext'
 
 export default function AdminSyncBanner() {
-  const { lastSyncStatus, lastSyncError, syncNow, isCloudConfigured, isLoadingFromCloud } = useSiteContent()
+  const { lastSyncStatus, lastSyncError, syncNow, isCloudConfigured, isLoadingFromCloud, isReady } = useSiteContent()
 
-  if (isLoadingFromCloud) {
+  if (isLoadingFromCloud || !isReady) {
     return (
       <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 mb-6">
         Carregando dados da nuvem...

@@ -12,7 +12,7 @@ const navLinks = [
 ]
 
 export default function Navbar() {
-  const { site } = useSiteContent()
+  const { site, isReady } = useSiteContent()
   const [isOpen, setIsOpen] = useState(false)
   const [logoFailed, setLogoFailed] = useState(false)
   const location = useLocation()
@@ -39,7 +39,7 @@ export default function Navbar() {
           className="shrink-0 flex items-center h-full p-0 m-0 bg-white"
           aria-label="Jair A Costa Consultor Imobiliário"
         >
-          {logoSrc && !logoFailed ? (
+          {isReady && logoSrc && !logoFailed ? (
             <img
               src={logoSrc}
               alt="Jair A Costa - Corretor de Imóveis / Consultor Imobiliário"
@@ -48,10 +48,12 @@ export default function Navbar() {
               className="block h-auto max-h-14 sm:max-h-16 w-auto max-w-[min(100vw-8rem,360px)] object-contain object-left bg-white border-0 outline-none shadow-none p-0 m-0"
               style={{ imageRendering: 'auto' }}
             />
-          ) : (
+          ) : isReady && logoFailed ? (
             <span className="text-base font-bold text-brand-blue leading-none whitespace-nowrap">
               Jair A Costa
             </span>
+          ) : (
+            <span className="block h-12 sm:h-14 w-28 bg-transparent" aria-hidden />
           )}
         </Link>
 

@@ -56,6 +56,40 @@ export async function saveCloudContent(
   return { ok: true }
 }
 
+import type { ContentHistoryEntry } from '../utils/contentClone'
+
+export async function fetchContentHistory(): Promise<ContentHistoryEntry[]> {
+  if (!isCloudEnabled() || !supabase) return []
+
+  const { data, error } = await supabase.rpc('list_site_content_history')
+
+  if (error || !Array.isArray(data)) return []
+
+  return data.map((row: { id: number; created_at: string }) => ({
+    id: Number(row.id),
+    createdAt: row.created_at,
+  }))
+}
+
+export async function restoreContentVersion(
+  historyId: number,
+  adminPassword: string,
+): Promise<SaveCloudResult> {
+  if (!isCloudEnabled() || !supabase) {
+    return { ok: false, error: 'Supabase não configurado.' }
+  }
+
+  const { data, error } = await supabase.rpc('restore_site_content_version', {
+    history_id: historyId,
+    admin_password: adminPassword,
+  })
+
+  if (error) return { ok: false, error: error.message }
+  if (data !== true) return { ok: false, error: 'Não foi possível restaurar esta versão.' }
+
+  return { ok: true }
+}
+
 export async function uploadPropertyImage(file: File): Promise<string | null> {
   if (!isCloudEnabled() || !supabase) return null
 

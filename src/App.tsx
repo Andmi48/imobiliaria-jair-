@@ -3,6 +3,7 @@ import { FavoritesProvider } from './context/FavoritesContext'
 import { AdminAuthProvider } from './context/AdminAuthContext'
 import { SiteContentProvider } from './context/SiteContentContext'
 import ScrollManager from './components/ScrollManager'
+import SiteContentGate from './components/SiteContentGate'
 import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
 import ListingsPage from './pages/ListingsPage'
@@ -21,6 +22,7 @@ function App() {
         <FavoritesProvider>
           <BrowserRouter>
             <ScrollManager />
+            <SiteContentGate>
             <Routes>
               <Route path="/acesso" element={<AdminLoginPage />} />
               <Route
@@ -42,6 +44,7 @@ function App() {
                 <Route path="/isencao-de-responsabilidade" element={<LegalDisclaimerPage />} />
               </Route>
             </Routes>
+            </SiteContentGate>
           </BrowserRouter>
         </FavoritesProvider>
       </SiteContentProvider>

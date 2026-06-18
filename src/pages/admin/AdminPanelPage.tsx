@@ -24,6 +24,8 @@ import AdminAboutSection from '../../components/admin/AdminAboutSection'
 import AdminTestimonialsSection from '../../components/admin/AdminTestimonialsSection'
 import AdminBackupSection from '../../components/admin/AdminBackupSection'
 import AdminSyncBanner from '../../components/admin/AdminSyncBanner'
+import AdminUndoButton from '../../components/admin/AdminUndoButton'
+import AdminSectionLoader from '../../components/admin/AdminSectionLoader'
 
 type AdminTab = 'overview' | 'logo' | 'properties' | 'property-options' | 'site' | 'hero' | 'about' | 'testimonials' | 'backup'
 
@@ -53,6 +55,7 @@ export default function AdminPanelPage() {
             <h1 className="text-lg font-bold">Jair A Costa — Controle do site</h1>
           </div>
           <div className="flex items-center gap-2">
+            <AdminUndoButton />
             {lastSyncStatus === 'syncing' && (
               <span className="text-xs text-white/70 hidden sm:inline">Sincronizando...</span>
             )}
@@ -106,6 +109,7 @@ export default function AdminPanelPage() {
 
           <main className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8">
             <AdminSyncBanner />
+            <AdminSectionLoader>
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 <div>
@@ -140,6 +144,7 @@ export default function AdminPanelPage() {
             {activeTab === 'about' && <AdminAboutSection />}
             {activeTab === 'testimonials' && <AdminTestimonialsSection />}
             {activeTab === 'backup' && <AdminBackupSection />}
+            </AdminSectionLoader>
           </main>
         </div>
       </div>

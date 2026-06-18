@@ -18,10 +18,13 @@ import {
   saveStoredContent,
 } from '../utils/storage'
 import { mergeSiteContent, normalizeSiteContent } from '../utils/contentMerge'
+import { cloneContent } from '../utils/contentClone'
 import { fetchCloudContent, saveCloudContent } from '../services/contentApi'
 import { getAdminSyncPassword, isAdminSessionActive } from '../config/admin'
 import { isCloudEnabled } from '../lib/supabase'
 import { useAdminAuth } from './AdminAuthContext'
+
+const MAX_UNDO = 30
 
 interface SiteContentContextValue {
   content: SiteContent
@@ -31,6 +34,8 @@ interface SiteContentContextValue {
   hero: HeroContent
   about: AboutContent
   testimonials: Testimonial[]
+  isReady: boolean
+  canUndo: boolean
   getPropertyById: (id: number) => Property | undefined
   updateSite: (site: SiteConfig | ((current: SiteConfig) => SiteConfig)) => void
   updateHero: (hero: HeroContent) => void
@@ -42,6 +47,7 @@ interface SiteContentContextValue {
   importContent: (content: SiteContent) => void
   resetToDefaults: () => void
   exportContent: () => string
+  undo: () => void
   syncNow: () => Promise<void>
   lastSyncStatus: 'idle' | 'syncing' | 'ok' | 'error'
   lastSyncError: string | null
@@ -51,22 +57,28 @@ interface SiteContentContextValue {
 
 const SiteContentContext = createContext<SiteContentContextValue | null>(null)
 
-function getInitialContent(): SiteContent {
+function getBootstrapContent(): SiteContent {
   if (isAdminSessionActive()) {
-    return normalizeSiteContent(loadStoredContent() ?? cloneDefaultContent())
+    const stored = loadStoredContent()
+    if (stored) return normalizeSiteContent(stored)
   }
   return cloneDefaultContent()
 }
 
 export function SiteContentProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAdminAuth()
-  const [content, setContent] = useState<SiteContent>(getInitialContent)
-  const [lastSyncStatus, setLastSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'error'>('idle')
-  const [lastSyncError, setLastSyncError] = useState<string | null>(null)
-  const [isLoadingFromCloud, setIsLoadingFromCloud] = useState(isCloudEnabled())
   const isCloudConfigured = isCloudEnabled()
 
+  const [content, setContent] = useState<SiteContent>(getBootstrapContent)
+  const [isReady, setIsReady] = useState(!isCloudConfigured)
+  const [canUndo, setCanUndo] = useState(false)
+  const [lastSyncStatus, setLastSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'error'>('idle')
+  const [lastSyncError, setLastSyncError] = useState<string | null>(null)
+  const [isLoadingFromCloud, setIsLoadingFromCloud] = useState(isCloudConfigured)
+
   const contentRef = useRef(content)
+  const undoStack = useRef<SiteContent[]>([])
+  const skipUndoPush = useRef(true)
   const didHydrateFromCloud = useRef(false)
   const isFirstRender = useRef(true)
   const isHydrating = useRef(false)
@@ -106,16 +118,32 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     return false
   }, [])
 
+  const applyContent = useCallback((next: SiteContent, options?: { recordUndo?: boolean }) => {
+    const recordUndo = options?.recordUndo ?? true
+
+    if (recordUndo && !skipUndoPush.current) {
+      const current = contentRef.current
+      if (JSON.stringify(current) !== JSON.stringify(next)) {
+        undoStack.current.push(cloneContent(current))
+        if (undoStack.current.length > MAX_UNDO) {
+          undoStack.current.shift()
+        }
+        setCanUndo(true)
+      }
+    }
+
+    setContent(normalizeSiteContent(next))
+  }, [])
+
   const hydrateFromCloud = useCallback(async () => {
     if (isHydrating.current) return
     isHydrating.current = true
+    skipUndoPush.current = true
 
     if (!isCloudConfigured) {
-      setLastSyncStatus('error')
-      setLastSyncError(
-        'Supabase não configurado neste ambiente. Rode: npx vercel env pull .env.local --environment=production --yes e reinicie o servidor (npm run dev).',
-      )
+      setIsReady(true)
       setIsLoadingFromCloud(false)
+      skipUndoPush.current = false
       isHydrating.current = false
       return
     }
@@ -126,7 +154,10 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       const cloud = await fetchCloudContent()
       if (!cloud) {
         setLastSyncStatus('error')
-        setLastSyncError('Não foi possível carregar dados da nuvem. Verifique o Supabase e execute supabase/fix-sync-completo.sql.')
+        setLastSyncError(
+          'Não foi possível carregar dados da nuvem. Execute supabase/fix-sync-completo.sql no Supabase.',
+        )
+        setContent(getBootstrapContent())
         return
       }
 
@@ -144,8 +175,13 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         setContent(normalizeSiteContent(cloud))
         didHydrateFromCloud.current = true
       }
+
+      undoStack.current = []
+      setCanUndo(false)
     } finally {
+      setIsReady(true)
       setIsLoadingFromCloud(false)
+      skipUndoPush.current = false
       isHydrating.current = false
     }
   }, [isCloudConfigured, publishToCloud])
@@ -161,9 +197,29 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     wasAuthenticated.current = isAuthenticated
   }, [isAuthenticated, hydrateFromCloud])
 
-  const persist = useCallback((next: SiteContent) => {
-    setContent(next)
-  }, [])
+  const persist = useCallback(
+    (next: SiteContent) => {
+      applyContent(next)
+    },
+    [applyContent],
+  )
+
+  const undo = useCallback(() => {
+    const previous = undoStack.current.pop()
+    if (!previous) {
+      setCanUndo(false)
+      return
+    }
+
+    skipUndoPush.current = true
+    setContent(normalizeSiteContent(previous))
+    setCanUndo(undoStack.current.length > 0)
+    skipUndoPush.current = false
+
+    if (isAdminSessionActive()) {
+      void publishToCloud(previous)
+    }
+  }, [publishToCloud])
 
   const getPropertyById = useCallback(
     (id: number) => content.properties.find((property) => property.id === id),
@@ -223,13 +279,20 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     [persist],
   )
 
-  const importContent = useCallback((next: SiteContent) => {
-    persist(normalizeSiteContent(next))
-  }, [persist])
+  const importContent = useCallback(
+    (next: SiteContent) => {
+      applyContent(next, { recordUndo: true })
+    },
+    [applyContent],
+  )
 
   const resetToDefaults = useCallback(() => {
     clearStoredContent()
+    undoStack.current = []
+    setCanUndo(false)
+    skipUndoPush.current = true
     setContent(cloneDefaultContent())
+    skipUndoPush.current = false
   }, [])
 
   const exportContent = useCallback(() => JSON.stringify(content, null, 2), [content])
@@ -263,6 +326,8 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       hero: content.hero,
       about: content.about,
       testimonials: content.testimonials,
+      isReady,
+      canUndo,
       getPropertyById,
       updateSite,
       updateHero,
@@ -274,6 +339,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       importContent,
       resetToDefaults,
       exportContent,
+      undo,
       syncNow,
       lastSyncStatus,
       lastSyncError,
@@ -282,6 +348,8 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     }),
     [
       content,
+      isReady,
+      canUndo,
       getPropertyById,
       updateSite,
       updateHero,
@@ -293,6 +361,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       importContent,
       resetToDefaults,
       exportContent,
+      undo,
       syncNow,
       lastSyncStatus,
       lastSyncError,
