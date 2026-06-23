@@ -16,7 +16,7 @@ export const BANNER_TEMPLATES: Array<{
   {
     id: 'classic',
     name: 'Destaque',
-    description: 'Foto principal grande (72%) + faixa de informações com descrição completa',
+    description: 'Foto principal + coluna lateral de fotos + painel organizado',
   },
   {
     id: 'modern',
@@ -326,7 +326,17 @@ function getCleanDescription(property: Property, maxLen = 320): string {
     .trim()
 
   if (!text) {
-    text = `Excelente ${property.category || 'imóvel'} em ${property.location}, ${property.city}. Entre em contato para agendar sua visita.`
+    return `Imóvel em ${property.location}, ${property.city}. Agende sua visita.`
+  }
+
+  const titleLower = property.title.toLowerCase()
+  if (text.toLowerCase().startsWith(titleLower.slice(0, Math.min(18, titleLower.length)))) {
+    text = text.slice(property.title.length).replace(/^[\s,.–-]+/, '').trim()
+  }
+
+  const locationChunk = `${property.location} ${property.city}`.toLowerCase()
+  if (text.toLowerCase().startsWith(locationChunk.slice(0, 12))) {
+    text = text.replace(new RegExp(`^${property.location}[\\s,.•–-]*`, 'i'), '').trim()
   }
 
   if (text.length > maxLen) {
@@ -375,10 +385,23 @@ function getSpecsLine(property: Property): string {
   return parts.join('  •  ')
 }
 
+/** Destaques que não repetem título, local ou metragem já exibidos no banner */
+function getFeatureHighlights(property: Property, max = 4): string[] {
+  const specsPattern = /quarto|dormit|banh|m²|m2|vaga|garagem|suíte/i
+  const locationPattern = new RegExp(
+    `${property.location}|${property.city}|${property.title}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+    'i',
+  )
+
+  return getBulletPoints(property)
+    .filter((item) => !specsPattern.test(item) && !locationPattern.test(item))
+    .slice(0, max)
+}
+
 // ─── Layouts de foto ─────────────────────────────────────────────────────────
 
-/** Foto principal grande + miniaturas na base */
-function drawHeroWithFilmstrip(
+/** Destaque: foto principal à esquerda + coluna de fotos secundárias visíveis */
+function drawClassicPhotoLayout(
   ctx: CanvasRenderingContext2D,
   photos: HTMLImageElement[],
   x: number,
@@ -386,21 +409,53 @@ function drawHeroWithFilmstrip(
   w: number,
   h: number,
 ) {
-  const gap = 6
+  const gap = 10
   if (photos.length === 1) {
     drawCoverImage(ctx, photos[0], x, y, w, h)
     return
   }
 
-  const stripH = Math.min(h * 0.18, 120)
-  const mainH = h - stripH - gap
-  drawCoverImage(ctx, photos[0], x, y, w, mainH)
+  const mainW = Math.round(w * 0.66) - gap / 2
+  drawCoverImage(ctx, photos[0], x, y, mainW, h)
 
-  const extras = photos.slice(1, 5)
-  const thumbW = (w - gap * (extras.length - 1)) / extras.length
-  extras.forEach((img, i) => {
-    drawCoverImage(ctx, img, x + i * (thumbW + gap), y + mainH + gap, thumbW, stripH)
+  const colX = x + mainW + gap
+  const colW = w - mainW - gap
+  const sidePhotos = photos.slice(1, 4)
+
+  if (sidePhotos.length === 1) {
+    drawCoverImage(ctx, sidePhotos[0], colX, y, colW, h)
+    return
+  }
+
+  const cellH = (h - gap * (sidePhotos.length - 1)) / sidePhotos.length
+  sidePhotos.forEach((img, i) => {
+    drawCoverImage(ctx, img, colX, y + i * (cellH + gap), colW, cellH)
   })
+
+  if (photos.length > 4) {
+    const badgeSize = 88
+    const bx = x + mainW - badgeSize - 16
+    const by = y + h - badgeSize - 16
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'
+    roundRect(ctx, bx, by, badgeSize, badgeSize, 8)
+    ctx.fill()
+    ctx.save()
+    roundRect(ctx, bx + 2, by + 2, badgeSize - 4, badgeSize - 4, 6)
+    ctx.clip()
+    drawCoverImage(ctx, photos[4], bx + 2, by + 2, badgeSize - 4, badgeSize - 4)
+    ctx.restore()
+    if (photos.length > 5) {
+      ctx.fillStyle = 'rgba(0,0,0,0.65)'
+      ctx.fillRect(bx, by, badgeSize, badgeSize)
+      ctx.fillStyle = '#fff'
+      ctx.font = 'bold 22px Inter, Arial, sans-serif'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(`+${photos.length - 4}`, bx + badgeSize / 2, by + badgeSize / 2)
+      ctx.textAlign = 'left'
+      ctx.textBaseline = 'alphabetic'
+    }
+  }
 }
 
 /** Uma foto em tela cheia na área */
@@ -686,55 +741,82 @@ function drawFooter(
 
 // ─── 5 layouts distintos ─────────────────────────────────────────────────────
 
-/** DESTAQUE: hero 72% + painel inferior com descrição */
+/** DESTAQUE: fotos equilibradas + painel inferior com respiro e sem repetição */
 async function renderClassic(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  const photoH = H * 0.72
-  drawHeroWithFilmstrip(ctx, input.photos, 0, 0, W, photoH)
-  drawTopBranding(ctx, input.logo, input.site, input.property, input.palette, input.customization)
-
-  const panelY = photoH - 2
+  const photoH = Math.round(H * 0.54)
+  const panelY = photoH
   const panelH = H - panelY
   const p = input.palette
+  const pad = 36
 
-  const grad = ctx.createLinearGradient(0, panelY - 60, 0, H)
+  drawClassicPhotoLayout(ctx, input.photos, 0, 0, W, photoH)
+
+  const fadeH = 48
+  const grad = ctx.createLinearGradient(0, panelY - fadeH, 0, panelY + 8)
   grad.addColorStop(0, 'rgba(0,0,0,0)')
-  grad.addColorStop(0.2, p.panelBgSoft)
   grad.addColorStop(1, p.panelBg)
   ctx.fillStyle = grad
-  ctx.fillRect(0, panelY - 60, W, panelH + 60)
-  ctx.fillStyle = p.panelBg
-  ctx.fillRect(0, panelY + 20, W, panelH - 20)
+  ctx.fillRect(0, panelY - fadeH, W, fadeH + 8)
 
-  const pad = 32
-  let cy = panelY + 36
+  ctx.fillStyle = p.panelBg
+  ctx.fillRect(0, panelY, W, panelH)
+
+  drawTopBranding(ctx, input.logo, input.site, input.property, p, input.customization)
+
+  const priceW = 248
+  const gutter = 28
+  const textW = W - pad * 2 - priceW - gutter
+  const priceX = W - pad - priceW
+  let cy = panelY + 44
 
   ctx.fillStyle = p.titleColor
-  ctx.font = 'bold 34px Inter, Arial, sans-serif'
-  const titleLines = wrapText(ctx, input.property.title, W - pad * 2 - 280)
-  titleLines.slice(0, 1).forEach((line) => {
-    ctx.fillText(line, pad, cy)
-    cy += 40
-  })
+  ctx.font = 'bold 32px Inter, Arial, sans-serif'
+  wrapText(ctx, input.property.title, textW)
+    .slice(0, 1)
+    .forEach((line) => {
+      ctx.fillText(line, pad, cy)
+      cy += 38
+    })
 
+  cy += 6
   ctx.fillStyle = p.mutedColor
-  ctx.font = '18px Inter, Arial, sans-serif'
+  ctx.font = '17px Inter, Arial, sans-serif'
   ctx.fillText(`${input.property.location} • ${input.property.city}`, pad, cy)
+  cy += 22
+
+  ctx.fillStyle = p.accentColor
+  ctx.font = '600 15px Inter, Arial, sans-serif'
+  ctx.fillText(getSpecsLine(input.property), pad, cy)
   cy += 28
 
-  const descH = drawDescription(ctx, input.property, pad, cy, W - pad * 2 - 290, p.textColor, 3, 16, 24)
-  cy += descH + 10
+  const descH = drawDescription(ctx, input.property, pad, cy, textW, p.textColor, 2, 16, 24)
+  cy += descH + 18
 
-  const bulletsH = drawBulletsRow(ctx, getBulletPoints(input.property), pad, cy, W - 320, p)
-  cy += bulletsH + 8
+  const highlights = getFeatureHighlights(input.property, 4)
+  if (highlights.length > 0) {
+    const bulletsH = drawBulletsRow(ctx, highlights, pad, cy, textW, p)
+    cy += bulletsH + 12
+  }
 
-  ctx.fillStyle = p.mutedColor
-  ctx.font = '15px Inter, Arial, sans-serif'
-  ctx.fillText(getSpecsLine(input.property), pad, cy + 10)
+  const priceY = panelY + 44
+  drawPriceBlock(ctx, input.property, p, priceX, priceY, priceW, true)
 
-  const priceX = W - pad - 260
-  const priceY = panelY + 36
-  drawPriceBlock(ctx, input.property, p, priceX, priceY, 260, true)
-  drawFooter(ctx, input.site, p, priceX, priceY + 130)
+  const footerY = H - pad - 8
+  ctx.fillStyle = p.titleColor
+  ctx.font = 'bold 17px Inter, Arial, sans-serif'
+  ctx.fillText(
+    `${input.site.shortName || input.site.name}  •  CRECI ${input.site.creci}`,
+    pad,
+    footerY,
+  )
+  const phone = input.site.phones[0]
+  if (phone) {
+    ctx.textAlign = 'right'
+    ctx.fillStyle = p.accentColor
+    ctx.font = 'bold 17px Inter, Arial, sans-serif'
+    ctx.fillText(phone, W - pad, footerY)
+    ctx.textAlign = 'left'
+  }
 }
 
 /** EDITORIAL: foto grande à esquerda (62%), painel texto à direita */
