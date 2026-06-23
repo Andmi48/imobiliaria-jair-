@@ -400,7 +400,7 @@ function getFeatureHighlights(property: Property, max = 4): string[] {
 
 // ─── Layouts de foto ─────────────────────────────────────────────────────────
 
-/** Destaque: foto principal à esquerda + coluna de fotos secundárias visíveis */
+/** Destaque: grade equilibrada — principal + laterais grandes + faixa inferior */
 function drawClassicPhotoLayout(
   ctx: CanvasRenderingContext2D,
   photos: HTMLImageElement[],
@@ -409,52 +409,43 @@ function drawClassicPhotoLayout(
   w: number,
   h: number,
 ) {
-  const gap = 10
+  const gap = 8
+
   if (photos.length === 1) {
     drawCoverImage(ctx, photos[0], x, y, w, h)
     return
   }
 
-  const mainW = Math.round(w * 0.66) - gap / 2
-  drawCoverImage(ctx, photos[0], x, y, mainW, h)
-
-  const colX = x + mainW + gap
-  const colW = w - mainW - gap
-  const sidePhotos = photos.slice(1, 4)
-
-  if (sidePhotos.length === 1) {
-    drawCoverImage(ctx, sidePhotos[0], colX, y, colW, h)
+  if (photos.length === 2) {
+    const half = (w - gap) / 2
+    drawCoverImage(ctx, photos[0], x, y, half, h)
+    drawCoverImage(ctx, photos[1], x + half + gap, y, half, h)
     return
   }
 
-  const cellH = (h - gap * (sidePhotos.length - 1)) / sidePhotos.length
-  sidePhotos.forEach((img, i) => {
-    drawCoverImage(ctx, img, colX, y + i * (cellH + gap), colW, cellH)
-  })
+  const stripCount = Math.max(0, photos.length - 3)
+  const stripH = stripCount > 0 ? Math.round(h * 0.26) : 0
+  const mainH = h - stripH - (stripH > 0 ? gap : 0)
 
-  if (photos.length > 4) {
-    const badgeSize = 88
-    const bx = x + mainW - badgeSize - 16
-    const by = y + h - badgeSize - 16
-    ctx.fillStyle = 'rgba(0,0,0,0.55)'
-    roundRect(ctx, bx, by, badgeSize, badgeSize, 8)
-    ctx.fill()
-    ctx.save()
-    roundRect(ctx, bx + 2, by + 2, badgeSize - 4, badgeSize - 4, 6)
-    ctx.clip()
-    drawCoverImage(ctx, photos[4], bx + 2, by + 2, badgeSize - 4, badgeSize - 4)
-    ctx.restore()
-    if (photos.length > 5) {
-      ctx.fillStyle = 'rgba(0,0,0,0.65)'
-      ctx.fillRect(bx, by, badgeSize, badgeSize)
-      ctx.fillStyle = '#fff'
-      ctx.font = 'bold 22px Inter, Arial, sans-serif'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(`+${photos.length - 4}`, bx + badgeSize / 2, by + badgeSize / 2)
-      ctx.textAlign = 'left'
-      ctx.textBaseline = 'alphabetic'
-    }
+  const mainW = Math.round(w * 0.58) - gap / 2
+  drawCoverImage(ctx, photos[0], x, y, mainW, mainH)
+
+  const sideCount = Math.min(photos.length - 1, 2)
+  const colX = x + mainW + gap
+  const colW = w - mainW - gap
+  const cellH = (mainH - gap * (sideCount - 1)) / sideCount
+
+  for (let i = 0; i < sideCount; i++) {
+    drawCoverImage(ctx, photos[i + 1], colX, y + i * (cellH + gap), colW, cellH)
+  }
+
+  if (stripH > 0) {
+    const stripPhotos = photos.slice(3)
+    const stripY = y + mainH + gap
+    const thumbW = (w - gap * (stripPhotos.length - 1)) / stripPhotos.length
+    stripPhotos.forEach((img, i) => {
+      drawCoverImage(ctx, img, x + i * (thumbW + gap), stripY, thumbW, stripH)
+    })
   }
 }
 
@@ -739,84 +730,211 @@ function drawFooter(
   }
 }
 
+type SpecIconKind = 'bed' | 'bath' | 'area' | 'car'
+
+function drawSpecIcon(
+  ctx: CanvasRenderingContext2D,
+  kind: SpecIconKind,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+) {
+  ctx.save()
+  ctx.strokeStyle = color
+  ctx.fillStyle = color
+  ctx.lineWidth = 2
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+
+  switch (kind) {
+    case 'bed':
+      ctx.strokeRect(x + 1, y + size * 0.42, size - 2, size * 0.32)
+      ctx.beginPath()
+      ctx.moveTo(x + 1, y + size * 0.42)
+      ctx.lineTo(x + 1, y + size * 0.22)
+      ctx.lineTo(x + size * 0.32, y + size * 0.22)
+      ctx.lineTo(x + size * 0.32, y + size * 0.42)
+      ctx.stroke()
+      break
+    case 'bath':
+      ctx.beginPath()
+      ctx.ellipse(x + size / 2, y + size * 0.58, size * 0.34, size * 0.22, 0, 0, Math.PI * 2)
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(x + size * 0.28, y + size * 0.35)
+      ctx.lineTo(x + size * 0.72, y + size * 0.35)
+      ctx.stroke()
+      break
+    case 'area':
+      ctx.strokeRect(x + size * 0.18, y + size * 0.18, size * 0.64, size * 0.64)
+      ctx.beginPath()
+      ctx.moveTo(x + size * 0.28, y + size * 0.72)
+      ctx.lineTo(x + size * 0.72, y + size * 0.28)
+      ctx.stroke()
+      break
+    case 'car':
+      ctx.beginPath()
+      ctx.moveTo(x + size * 0.12, y + size * 0.62)
+      ctx.lineTo(x + size * 0.24, y + size * 0.38)
+      ctx.lineTo(x + size * 0.76, y + size * 0.38)
+      ctx.lineTo(x + size * 0.88, y + size * 0.62)
+      ctx.closePath()
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.arc(x + size * 0.28, y + size * 0.66, size * 0.09, 0, Math.PI * 2)
+      ctx.arc(x + size * 0.72, y + size * 0.66, size * 0.09, 0, Math.PI * 2)
+      ctx.fill()
+      break
+  }
+
+  ctx.restore()
+}
+
+function drawPhoneIcon(ctx: CanvasRenderingContext2D, x: number, y: number, color: string) {
+  ctx.save()
+  ctx.strokeStyle = color
+  ctx.lineWidth = 2
+  roundRect(ctx, x, y, 14, 22, 3)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(x + 4, y + 18)
+  ctx.lineTo(x + 10, y + 18)
+  ctx.stroke()
+  ctx.restore()
+}
+
+function drawSpecIconsRow(
+  ctx: CanvasRenderingContext2D,
+  property: Property,
+  x: number,
+  y: number,
+  w: number,
+  palette: Palette,
+): number {
+  const items: Array<{ kind: SpecIconKind; value: string; label: string }> = []
+  if (property.bedrooms > 0) {
+    items.push({ kind: 'bed', value: String(property.bedrooms), label: 'quartos' })
+  }
+  items.push({ kind: 'bath', value: String(property.bathrooms), label: 'banh.' })
+  items.push({ kind: 'area', value: String(property.area), label: 'm²' })
+  if (property.parking > 0) {
+    items.push({ kind: 'car', value: String(property.parking), label: 'vagas' })
+  }
+
+  const gap = 10
+  const boxH = 62
+  const boxW = (w - gap * (items.length - 1)) / items.length
+
+  items.forEach((item, i) => {
+    const bx = x + i * (boxW + gap)
+    ctx.fillStyle = palette.chipBg
+    roundRect(ctx, bx, y, boxW, boxH, 12)
+    ctx.fill()
+    drawSpecIcon(ctx, item.kind, bx + 14, y + 14, 28, palette.accentColor)
+    ctx.fillStyle = palette.titleColor
+    ctx.font = 'bold 20px Inter, Arial, sans-serif'
+    ctx.fillText(item.value, bx + 48, y + 30)
+    ctx.fillStyle = palette.mutedColor
+    ctx.font = '13px Inter, Arial, sans-serif'
+    ctx.fillText(item.label, bx + 48, y + 48)
+  })
+
+  return boxH
+}
+
+function drawClassicContactBar(
+  ctx: CanvasRenderingContext2D,
+  site: SiteConfig,
+  palette: Palette,
+  y: number,
+  h: number,
+) {
+  ctx.fillStyle = 'rgba(0,0,0,0.28)'
+  ctx.fillRect(0, y, W, h)
+
+  const pad = 36
+  const midY = y + h / 2
+  const phone = site.phones[0] ?? ''
+
+  ctx.textBaseline = 'middle'
+  ctx.fillStyle = palette.titleColor
+  ctx.font = 'bold 16px Inter, Arial, sans-serif'
+  ctx.fillText(`${site.shortName || site.name}  •  CRECI ${site.creci}`, pad, midY)
+
+  if (phone) {
+    ctx.font = 'bold 18px Inter, Arial, sans-serif'
+    const phoneW = ctx.measureText(phone).width
+    const phoneX = W - pad - phoneW
+    drawPhoneIcon(ctx, phoneX - 22, midY - 11, palette.accentColor)
+    ctx.fillStyle = palette.accentColor
+    ctx.fillText(phone, phoneX, midY)
+  }
+
+  ctx.textBaseline = 'alphabetic'
+}
+
 // ─── 5 layouts distintos ─────────────────────────────────────────────────────
 
-/** DESTAQUE: fotos equilibradas + painel inferior com respiro e sem repetição */
+/** DESTAQUE: fotos amplas + ícones + barra de contato integrada */
 async function renderClassic(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  const photoH = Math.round(H * 0.54)
+  const contactBarH = 76
+  const photoH = Math.round(H * 0.62)
   const panelY = photoH
   const panelH = H - panelY
+  const contentBottom = H - contactBarH
   const p = input.palette
   const pad = 36
 
   drawClassicPhotoLayout(ctx, input.photos, 0, 0, W, photoH)
 
-  const fadeH = 48
-  const grad = ctx.createLinearGradient(0, panelY - fadeH, 0, panelY + 8)
-  grad.addColorStop(0, 'rgba(0,0,0,0)')
-  grad.addColorStop(1, p.panelBg)
-  ctx.fillStyle = grad
-  ctx.fillRect(0, panelY - fadeH, W, fadeH + 8)
-
   ctx.fillStyle = p.panelBg
   ctx.fillRect(0, panelY, W, panelH)
 
+  const fadeH = 32
+  const grad = ctx.createLinearGradient(0, panelY - fadeH, 0, panelY + 6)
+  grad.addColorStop(0, 'rgba(0,0,0,0)')
+  grad.addColorStop(1, p.panelBg)
+  ctx.fillStyle = grad
+  ctx.fillRect(0, panelY - fadeH, W, fadeH + 6)
+
   drawTopBranding(ctx, input.logo, input.site, input.property, p, input.customization)
 
-  const priceW = 248
-  const gutter = 28
+  const priceW = 252
+  const gutter = 24
   const textW = W - pad * 2 - priceW - gutter
   const priceX = W - pad - priceW
-  let cy = panelY + 44
+  let cy = panelY + 32
 
   ctx.fillStyle = p.titleColor
-  ctx.font = 'bold 32px Inter, Arial, sans-serif'
+  ctx.font = 'bold 31px Inter, Arial, sans-serif'
   wrapText(ctx, input.property.title, textW)
     .slice(0, 1)
     .forEach((line) => {
       ctx.fillText(line, pad, cy)
-      cy += 38
+      cy += 36
     })
 
-  cy += 6
+  cy += 8
   ctx.fillStyle = p.mutedColor
   ctx.font = '17px Inter, Arial, sans-serif'
   ctx.fillText(`${input.property.location} • ${input.property.city}`, pad, cy)
-  cy += 22
+  cy += 30
 
-  ctx.fillStyle = p.accentColor
-  ctx.font = '600 15px Inter, Arial, sans-serif'
-  ctx.fillText(getSpecsLine(input.property), pad, cy)
-  cy += 28
+  const descH = drawDescription(ctx, input.property, pad, cy, W - pad * 2, p.textColor, 2, 16, 24)
+  cy += descH + 20
 
-  const descH = drawDescription(ctx, input.property, pad, cy, textW, p.textColor, 2, 16, 24)
-  cy += descH + 18
+  const iconsH = drawSpecIconsRow(ctx, input.property, pad, cy, W - pad * 2, p)
+  cy += iconsH + 18
 
-  const highlights = getFeatureHighlights(input.property, 4)
-  if (highlights.length > 0) {
-    const bulletsH = drawBulletsRow(ctx, highlights, pad, cy, textW, p)
-    cy += bulletsH + 12
+  const highlights = getFeatureHighlights(input.property, 3)
+  if (highlights.length > 0 && cy < contentBottom - 50) {
+    const bulletsH = drawBulletsRow(ctx, highlights, pad, cy, W - pad * 2, p)
+    cy += bulletsH + 8
   }
 
-  const priceY = panelY + 44
-  drawPriceBlock(ctx, input.property, p, priceX, priceY, priceW, true)
-
-  const footerY = H - pad - 8
-  ctx.fillStyle = p.titleColor
-  ctx.font = 'bold 17px Inter, Arial, sans-serif'
-  ctx.fillText(
-    `${input.site.shortName || input.site.name}  •  CRECI ${input.site.creci}`,
-    pad,
-    footerY,
-  )
-  const phone = input.site.phones[0]
-  if (phone) {
-    ctx.textAlign = 'right'
-    ctx.fillStyle = p.accentColor
-    ctx.font = 'bold 17px Inter, Arial, sans-serif'
-    ctx.fillText(phone, W - pad, footerY)
-    ctx.textAlign = 'left'
-  }
+  drawPriceBlock(ctx, input.property, p, priceX, panelY + 32, priceW, true)
+  drawClassicContactBar(ctx, input.site, p, contentBottom, contactBarH)
 }
 
 /** EDITORIAL: foto grande à esquerda (62%), painel texto à direita */

@@ -8,6 +8,16 @@ export type AdminUpdateEntry = {
 /** Histórico de atualizações — adicione a nova versão sempre no topo. */
 export const ADMIN_UPDATES: AdminUpdateEntry[] = [
   {
+    version: '2.4.2',
+    date: '2025-06-23',
+    title: 'Banner Destaque com ícones e contato',
+    items: [
+      'Fotos maiores com faixa inferior para fotos extras',
+      'Ícones de quartos, banheiros, área e vagas',
+      'Barra de contato integrada com telefone e CRECI juntos',
+    ],
+  },
+  {
     version: '2.4.1',
     date: '2025-06-23',
     title: 'Banner Destaque refinado',
