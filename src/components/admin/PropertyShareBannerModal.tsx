@@ -34,8 +34,6 @@ export default function PropertyShareBannerModal({ property, open, onClose }: Pr
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const template = BANNER_TEMPLATES.find((t) => t.id === templateId) ?? BANNER_TEMPLATES[0]
-
   useEffect(() => {
     if (!open) return
     setSelectedPhotos(allPhotos.slice(0, Math.min(1, allPhotos.length)))
@@ -179,9 +177,7 @@ export default function PropertyShareBannerModal({ property, open, onClose }: Pr
                     1. Selecione as fotos ({selectedPhotos.length}/{MAX_BANNER_PHOTOS})
                   </p>
                   <p className="text-xs text-gray-500 mb-3">
-                    {template.usesMultiplePhotos
-                      ? 'Modelo Colagem usa todas as fotos escolhidas. Os outros modelos usam a primeira selecionada.'
-                      : 'Os modelos Clássico, Moderno, Impacto e Minimalista usam a primeira foto selecionada.'}
+                    Todas as fotos selecionadas aparecem no banner. Use até {MAX_BANNER_PHOTOS} fotos.
                   </p>
                   {allPhotos.length === 0 ? (
                     <p className="text-sm text-gray-500">Este imóvel não tem fotos cadastradas.</p>

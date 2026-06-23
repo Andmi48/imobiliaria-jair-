@@ -22,6 +22,10 @@ export interface Property {
   amenities: string[]
   featured?: boolean
   isNew?: boolean
+  /** Valor anterior — se maior que priceValue, exibe redução no banner */
+  previousPriceValue?: number
+  /** Texto de destaque no banner (ex: "Preço reduzido!") */
+  promoHighlight?: string
 }
 
 export const properties: Property[] = [

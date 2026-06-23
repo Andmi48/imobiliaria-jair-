@@ -458,6 +458,74 @@ export default function AdminPropertiesSection() {
 
           </div>
 
+          <div className="lg:col-span-2 rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
+
+            <p className="text-sm font-semibold text-amber-900">Destaque no banner (redução de preço)</p>
+
+            <p className="text-xs text-amber-800">
+
+              Preencha o valor anterior quando o proprietário abaixar o preço. O banner mostrará &quot;Preço reduzido!&quot; automaticamente.
+
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+              <div>
+
+                <label className={adminLabelClass}>Valor anterior (só números)</label>
+
+                <input
+
+                  className={adminInputClass}
+
+                  value={editing.previousPriceValue || ''}
+
+                  onChange={(e) => {
+
+                    const previousPriceValue = Number(e.target.value.replace(/\D/g, '')) || undefined
+
+                    updateField('previousPriceValue', previousPriceValue)
+
+                  }}
+
+                  placeholder="Ex: 520000"
+
+                />
+
+                {editing.previousPriceValue ? (
+
+                  <p className="text-xs text-gray-500 mt-1">
+
+                    Era: {formatPropertyPrice(editing.previousPriceValue, editing.type)}
+
+                  </p>
+
+                ) : null}
+
+              </div>
+
+              <div>
+
+                <label className={adminLabelClass}>Texto de destaque (opcional)</label>
+
+                <input
+
+                  className={adminInputClass}
+
+                  value={editing.promoHighlight ?? ''}
+
+                  onChange={(e) => updateField('promoHighlight', e.target.value || undefined)}
+
+                  placeholder="Ex: Preço reduzido! Oportunidade!"
+
+                />
+
+              </div>
+
+            </div>
+
+          </div>
+
           <div>
 
             <label className={adminLabelClass}>Tipo</label>
