@@ -10,25 +10,43 @@ interface PropertyImageGalleryProps {
 }
 
 export default function PropertyImageGallery({ images, title, type }: PropertyImageGalleryProps) {
+  const validImages = images.filter((src) => src?.trim())
   const [index, setIndex] = useState(0)
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [paused, setPaused] = useState(false)
+  const [imageReady, setImageReady] = useState(true)
+
+  const safeIndex = validImages.length > 0 ? index % validImages.length : 0
+  const currentSrc = validImages[safeIndex] ?? ''
 
   const next = useCallback(() => {
-    setIndex((i) => (i + 1) % images.length)
-  }, [images.length])
+    if (validImages.length <= 1) return
+    setIndex((i) => (i + 1) % validImages.length)
+  }, [validImages.length])
 
   const prev = useCallback(() => {
-    setIndex((i) => (i - 1 + images.length) % images.length)
-  }, [images.length])
+    if (validImages.length <= 1) return
+    setIndex((i) => (i - 1 + validImages.length) % validImages.length)
+  }, [validImages.length])
+
+  // Pré-carrega todas as fotos para troca sem tela branca
+  useEffect(() => {
+    validImages.forEach((src) => {
+      const img = new Image()
+      img.src = src
+    })
+  }, [validImages])
 
   useEffect(() => {
-    if (images.length <= 1 || paused || galleryOpen) return
+    setImageReady(false)
+  }, [currentSrc])
 
+  useEffect(() => {
+    if (validImages.length <= 1 || paused || galleryOpen) return
     const timer = setInterval(next, 5000)
     return () => clearInterval(timer)
-  }, [images.length, paused, galleryOpen, next])
+  }, [validImages.length, paused, galleryOpen, next])
 
   useEffect(() => {
     if (galleryOpen) {
@@ -41,56 +59,70 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
     }
   }, [galleryOpen])
 
+  useEffect(() => {
+    if (index >= validImages.length) setIndex(0)
+  }, [index, validImages.length])
+
   const openGallery = () => {
-    setLightboxIndex(index)
+    setLightboxIndex(safeIndex)
     setGalleryOpen(true)
+  }
+
+  if (validImages.length === 0) {
+    return (
+      <div className="relative rounded-2xl overflow-hidden mb-8 aspect-[16/9] bg-gray-100 flex items-center justify-center text-gray-400">
+        Sem fotos disponíveis
+      </div>
+    )
   }
 
   return (
     <>
       <div
-        className="relative rounded-2xl overflow-hidden mb-8 aspect-[16/9] bg-gray-100 group"
+        className="relative rounded-2xl overflow-hidden mb-8 aspect-[16/9] bg-gray-200 group"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
-        {images.map((src, i) => (
-          <ProtectedImage
-            key={src}
-            src={src}
-            alt={`${title} - foto ${i + 1}`}
-            wrapperClassName={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
-              i === index ? 'opacity-100' : 'opacity-0'
-            }`}
-            className="w-full h-full object-cover"
-          />
-        ))}
+        <ProtectedImage
+          key={currentSrc}
+          src={currentSrc}
+          alt={`${title} - foto ${safeIndex + 1}`}
+          wrapperClassName={`absolute inset-0 w-full h-full transition-opacity duration-500 ${
+            imageReady ? 'opacity-100' : 'opacity-0'
+          }`}
+          className="object-cover"
+          onLoad={() => setImageReady(true)}
+        />
 
-        {images.length > 1 && (
+        {validImages.length > 1 && (
           <>
             <button
               type="button"
               onClick={prev}
-              className="absolute left-4 top-1/2 z-10 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute left-4 top-1/2 z-20 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
+              aria-label="Foto anterior"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               type="button"
               onClick={next}
-              className="absolute right-4 top-1/2 z-10 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute right-4 top-1/2 z-20 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
+              aria-label="Próxima foto"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
 
-            <div className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 flex gap-2">
-              {images.map((_, i) => (
+            <div className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 flex gap-2">
+              {validImages.map((_, i) => (
                 <button
                   key={i}
                   type="button"
                   onClick={() => setIndex(i)}
                   className={`h-1.5 rounded-full transition-all duration-500 ${
-                    i === index ? 'w-8 bg-white' : 'w-1.5 bg-white/50'
+                    i === safeIndex ? 'w-8 bg-white' : 'w-1.5 bg-white/50'
                   }`}
+                  aria-label={`Ir para foto ${i + 1}`}
                 />
               ))}
             </div>
@@ -98,21 +130,21 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
         )}
 
         <span
-          className={`absolute top-4 left-4 z-10 px-4 py-1.5 rounded-full text-sm font-bold text-white ${
+          className={`absolute top-4 left-4 z-20 px-4 py-1.5 rounded-full text-sm font-bold text-white ${
             type === 'Venda' ? 'bg-brand-blue' : 'bg-brand-red'
           }`}
         >
           {type}
         </span>
 
-        {images.length > 1 && (
+        {validImages.length > 1 && (
           <button
             type="button"
             onClick={openGallery}
-            className="absolute bottom-4 right-4 z-10 flex items-center gap-2 bg-white/95 hover:bg-white text-gray-800 px-4 py-2 rounded-full text-sm font-semibold shadow-lg transition-all hover:scale-105"
+            className="absolute bottom-4 right-4 z-20 flex items-center gap-2 bg-white/95 hover:bg-white text-gray-800 px-4 py-2 rounded-full text-sm font-semibold shadow-lg transition-all hover:scale-105"
           >
             <Grid3X3 className="w-4 h-4" />
-            Ver todas
+            Ver todas ({validImages.length})
           </button>
         )}
       </div>
@@ -129,7 +161,7 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
             <button
               type="button"
               onClick={() => setGalleryOpen(false)}
-              className="absolute -top-12 right-0 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
+              className="absolute -top-12 right-0 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors z-10"
               aria-label="Fechar galeria"
             >
               <X className="w-5 h-5" />
@@ -138,41 +170,43 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
             <div className="bg-white rounded-2xl overflow-hidden shadow-2xl">
               <div className="relative aspect-[16/10] bg-gray-900">
                 <ProtectedImage
-                  key={lightboxIndex}
-                  src={images[lightboxIndex]}
+                  key={validImages[lightboxIndex]}
+                  src={validImages[lightboxIndex]}
                   alt={`${title} - foto ${lightboxIndex + 1}`}
-                  wrapperClassName="w-full h-full gallery-image-enter"
-                  className="w-full h-full object-contain"
+                  wrapperClassName="absolute inset-0 w-full h-full gallery-image-enter"
+                  className="object-contain"
                 />
-                {images.length > 1 && (
+                {validImages.length > 1 && (
                   <>
                     <button
                       type="button"
                       onClick={() =>
-                        setLightboxIndex((i) => (i - 1 + images.length) % images.length)
+                        setLightboxIndex((i) => (i - 1 + validImages.length) % validImages.length)
                       }
-                      className="absolute left-4 top-1/2 z-10 -translate-y-1/2 w-11 h-11 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white"
+                      className="absolute left-4 top-1/2 z-20 -translate-y-1/2 w-11 h-11 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white"
+                      aria-label="Foto anterior"
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
                     <button
                       type="button"
-                      onClick={() => setLightboxIndex((i) => (i + 1) % images.length)}
-                      className="absolute right-4 top-1/2 z-10 -translate-y-1/2 w-11 h-11 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white"
+                      onClick={() => setLightboxIndex((i) => (i + 1) % validImages.length)}
+                      className="absolute right-4 top-1/2 z-20 -translate-y-1/2 w-11 h-11 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white"
+                      aria-label="Próxima foto"
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
                   </>
                 )}
-                <span className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 text-white/80 text-sm bg-black/40 px-3 py-1 rounded-full">
-                  {lightboxIndex + 1} / {images.length}
+                <span className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 text-white/80 text-sm bg-black/40 px-3 py-1 rounded-full">
+                  {lightboxIndex + 1} / {validImages.length}
                 </span>
               </div>
 
               <div className="p-4 grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-32 overflow-y-auto">
-                {images.map((src, i) => (
+                {validImages.map((src, i) => (
                   <button
-                    key={src}
+                    key={`${src}-${i}`}
                     type="button"
                     onClick={() => setLightboxIndex(i)}
                     className={`relative aspect-square rounded-lg overflow-hidden transition-all duration-300 ${
@@ -181,7 +215,12 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
                         : 'opacity-70 hover:opacity-100'
                     }`}
                   >
-                    <ProtectedImage src={src} alt="" wrapperClassName="w-full h-full" className="w-full h-full object-cover" />
+                    <img
+                      src={src}
+                      alt=""
+                      className="w-full h-full object-cover pointer-events-none select-none"
+                      draggable={false}
+                    />
                   </button>
                 ))}
               </div>

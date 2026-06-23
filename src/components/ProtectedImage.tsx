@@ -17,9 +17,11 @@ export default function ProtectedImage({
     event.stopPropagation()
   }
 
+  const isAbsolute = /\babsolute\b/.test(wrapperClassName)
+
   return (
     <div
-      className={`protected-image relative overflow-hidden select-none ${wrapperClassName}`}
+      className={`protected-image overflow-hidden select-none ${isAbsolute ? '' : 'relative'} ${wrapperClassName}`}
       onContextMenu={blockEvent}
       onDragStart={blockEvent}
     >
@@ -27,7 +29,7 @@ export default function ProtectedImage({
         {...imgProps}
         alt={alt}
         draggable={false}
-        className={`pointer-events-none select-none ${className}`}
+        className={`block w-full h-full pointer-events-none select-none ${className}`}
         style={{ ...(imgProps.style ?? {}), userSelect: 'none' } as React.CSSProperties}
       />
       <div

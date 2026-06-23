@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Download, ImageIcon, Loader2, Share2, X } from 'lucide-react'
+import { Download, ImageIcon, Loader2, Palette, Share2, X } from 'lucide-react'
 import type { Property } from '../../data/properties'
 import { useSiteContent } from '../../context/SiteContentContext'
 import {
+  BANNER_PALETTES,
   BANNER_TEMPLATES,
+  DEFAULT_BANNER_CUSTOMIZATION,
   MAX_BANNER_PHOTOS,
   downloadBanner,
   generateBannerBlob,
+  type BannerCorner,
+  type BannerCustomization,
+  type BannerPaletteId,
   type BannerTemplateId,
 } from '../../utils/bannerGenerator'
 
@@ -15,6 +20,11 @@ type PropertyShareBannerModalProps = {
   open: boolean
   onClose: () => void
 }
+
+const CORNER_OPTIONS: Array<{ value: BannerCorner; label: string }> = [
+  { value: 'top-left', label: 'Canto superior esquerdo' },
+  { value: 'top-right', label: 'Canto superior direito' },
+]
 
 export default function PropertyShareBannerModal({ property, open, onClose }: PropertyShareBannerModalProps) {
   const { site } = useSiteContent()
@@ -30,6 +40,7 @@ export default function PropertyShareBannerModal({ property, open, onClose }: Pr
 
   const [selectedPhotos, setSelectedPhotos] = useState<string[]>([])
   const [templateId, setTemplateId] = useState<BannerTemplateId>('classic')
+  const [customization, setCustomization] = useState<BannerCustomization>(DEFAULT_BANNER_CUSTOMIZATION)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -38,6 +49,7 @@ export default function PropertyShareBannerModal({ property, open, onClose }: Pr
     if (!open) return
     setSelectedPhotos(allPhotos.slice(0, Math.min(1, allPhotos.length)))
     setTemplateId('classic')
+    setCustomization(DEFAULT_BANNER_CUSTOMIZATION)
     setPreviewUrl(null)
     setError(null)
   }, [open, property.id, allPhotos])
@@ -60,6 +72,12 @@ export default function PropertyShareBannerModal({ property, open, onClose }: Pr
       if (previewUrl) URL.revokeObjectURL(previewUrl)
     }
   }, [previewUrl])
+
+  const updateCustomization = (patch: Partial<BannerCustomization>) => {
+    setCustomization((current) => ({ ...current, ...patch }))
+    setPreviewUrl(null)
+    setError(null)
+  }
 
   const togglePhoto = (url: string) => {
     setSelectedPhotos((current) => {
@@ -90,6 +108,7 @@ export default function PropertyShareBannerModal({ property, open, onClose }: Pr
         property,
         site,
         templateId,
+        customization,
       })
       if (previewUrl) URL.revokeObjectURL(previewUrl)
       setPreviewUrl(URL.createObjectURL(blob))
@@ -104,7 +123,7 @@ export default function PropertyShareBannerModal({ property, open, onClose }: Pr
     try {
       const blob = previewUrl
         ? await fetch(previewUrl).then((r) => r.blob())
-        : await generateBannerBlob({ photos: selectedPhotos, property, site, templateId })
+        : await generateBannerBlob({ photos: selectedPhotos, property, site, templateId, customization })
       const safeName = property.title.replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-').slice(0, 40)
       downloadBanner(blob, `divulgacao-${safeName || property.id}.png`)
     } catch (err) {
@@ -127,7 +146,6 @@ export default function PropertyShareBannerModal({ property, open, onClose }: Pr
         aria-labelledby="banner-modal-title"
         onClick={(event) => event.stopPropagation()}
       >
-        {/* Cabeçalho fixo */}
         <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-100 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-brand-blue/10 flex items-center justify-center shrink-0">
@@ -150,10 +168,8 @@ export default function PropertyShareBannerModal({ property, open, onClose }: Pr
           </button>
         </div>
 
-        {/* Conteúdo rolável */}
         <div className="flex-1 overflow-y-auto overscroll-contain">
           <div className="p-4 sm:p-6 space-y-5 sm:space-y-6">
-            {/* Prévia no topo no mobile */}
             <div className="xl:hidden">
               <p className="text-sm font-semibold text-gray-900 mb-2">Pré-visualização</p>
               <div className="mx-auto w-full max-w-[280px] sm:max-w-[320px]">
@@ -235,6 +251,79 @@ export default function PropertyShareBannerModal({ property, open, onClose }: Pr
                   </div>
                 </div>
 
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                    <Palette className="w-4 h-4 text-brand-blue" />
+                    3. Paleta de cores
+                  </p>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Escolha o estilo visual. Nenhuma paleta usa vermelho nos valores — tons que transmitem confiança e oportunidade.
+                  </p>
+                  <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin">
+                    {BANNER_PALETTES.map((palette) => (
+                      <button
+                        key={palette.id}
+                        type="button"
+                        onClick={() => updateCustomization({ paletteId: palette.id as BannerPaletteId })}
+                        className={`shrink-0 snap-start w-[148px] rounded-xl border p-3 text-left transition-all ${
+                          customization.paletteId === palette.id
+                            ? 'border-brand-blue bg-brand-blue/5 ring-2 ring-brand-blue/25'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex gap-1 mb-2">
+                          {palette.swatch.map((color) => (
+                            <span
+                              key={color}
+                              className="w-6 h-6 rounded-full border border-white shadow-sm"
+                              style={{ backgroundColor: color }}
+                            />
+                          ))}
+                        </div>
+                        <p className="font-semibold text-sm text-gray-900">{palette.name}</p>
+                        <p className="text-[11px] text-gray-500 mt-1 leading-snug">{palette.description}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 mb-2">4. Posicionamento</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label className="block">
+                      <span className="text-xs font-medium text-gray-600 mb-1 block">Logo</span>
+                      <select
+                        value={customization.logoPosition}
+                        onChange={(e) => updateCustomization({ logoPosition: e.target.value as BannerCorner })}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue/20 outline-none"
+                      >
+                        {CORNER_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-medium text-gray-600 mb-1 block">Venda / Locação</span>
+                      <select
+                        value={customization.typePosition}
+                        onChange={(e) => updateCustomization({ typePosition: e.target.value as BannerCorner })}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-brand-blue focus:ring-1 focus:ring-brand-blue/20 outline-none"
+                      >
+                        {CORNER_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Padrão: logo no canto superior esquerdo (como o site) e tipo no canto superior direito.
+                  </p>
+                </div>
+
                 {error && (
                   <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
                     {error}
@@ -242,9 +331,8 @@ export default function PropertyShareBannerModal({ property, open, onClose }: Pr
                 )}
               </div>
 
-              {/* Prévia lateral no desktop */}
               <div className="hidden xl:block space-y-3">
-                <p className="text-sm font-semibold text-gray-900">3. Pré-visualização</p>
+                <p className="text-sm font-semibold text-gray-900">5. Pré-visualização</p>
                 <div className="sticky top-0">
                   <div className="aspect-square rounded-xl border border-gray-200 bg-gray-50 overflow-hidden flex items-center justify-center">
                     {previewUrl ? (
@@ -263,7 +351,6 @@ export default function PropertyShareBannerModal({ property, open, onClose }: Pr
           </div>
         </div>
 
-        {/* Rodapé fixo com ações */}
         <div className="shrink-0 border-t border-gray-100 bg-white px-4 py-3 sm:px-6 sm:py-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
           <button
             type="button"
@@ -278,7 +365,7 @@ export default function PropertyShareBannerModal({ property, open, onClose }: Pr
             <button
               type="button"
               onClick={() => void handleDownload()}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand-red text-white font-semibold hover:bg-brand-red-dark text-sm sm:text-base"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 text-sm sm:text-base"
             >
               <Download className="w-4 h-4" />
               Baixar PNG

@@ -14,7 +14,9 @@ export default function PropertyDetailPage() {
     return <Navigate to="/" replace />
   }
 
-  const images = property.images.length > 0 ? property.images : [property.image]
+  const images = (property.images.length > 0 ? property.images : [property.image]).filter(
+    (src) => src?.trim(),
+  )
   const backLink = property.type === 'Venda' ? '/venda' : '/aluguel'
 
   return (
