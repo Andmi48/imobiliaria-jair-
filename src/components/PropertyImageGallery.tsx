@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { ChevronLeft, ChevronRight, X, Grid3X3 } from 'lucide-react'
 import type { PropertyType } from '../data/properties'
 import ProtectedImage from './ProtectedImage'
@@ -9,13 +9,56 @@ interface PropertyImageGalleryProps {
   type: PropertyType
 }
 
+function GalleryImage({
+  src,
+  alt,
+  className = 'object-cover',
+  fit = 'cover',
+}: {
+  src: string
+  alt: string
+  className?: string
+  fit?: 'cover' | 'contain'
+}) {
+  const imgRef = useRef<HTMLImageElement>(null)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    setFailed(false)
+    const img = imgRef.current
+    if (img?.complete && img.naturalWidth > 0) {
+      setFailed(false)
+    }
+  }, [src])
+
+  if (!src || failed) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 text-sm">
+        Foto indisponível
+      </div>
+    )
+  }
+
+  return (
+    <ProtectedImage
+      src={src}
+      alt={alt}
+      wrapperClassName="absolute inset-0 w-full h-full"
+      className={`w-full h-full ${fit === 'contain' ? 'object-contain' : 'object-cover'} ${className}`}
+      decoding="async"
+      loading="eager"
+      onError={() => setFailed(true)}
+      ref={imgRef}
+    />
+  )
+}
+
 export default function PropertyImageGallery({ images, title, type }: PropertyImageGalleryProps) {
   const validImages = images.filter((src) => src?.trim())
   const [index, setIndex] = useState(0)
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [paused, setPaused] = useState(false)
-  const [imageReady, setImageReady] = useState(true)
 
   const safeIndex = validImages.length > 0 ? index % validImages.length : 0
   const currentSrc = validImages[safeIndex] ?? ''
@@ -30,17 +73,12 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
     setIndex((i) => (i - 1 + validImages.length) % validImages.length)
   }, [validImages.length])
 
-  // Pré-carrega todas as fotos para troca sem tela branca
   useEffect(() => {
     validImages.forEach((src) => {
       const img = new Image()
       img.src = src
     })
   }, [validImages])
-
-  useEffect(() => {
-    setImageReady(false)
-  }, [currentSrc])
 
   useEffect(() => {
     if (validImages.length <= 1 || paused || galleryOpen) return
@@ -79,19 +117,14 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
   return (
     <>
       <div
-        className="relative rounded-2xl overflow-hidden mb-8 aspect-[16/9] bg-gray-200 group"
+        className="relative rounded-2xl overflow-hidden mb-8 aspect-[16/9] bg-gray-100 group"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
-        <ProtectedImage
+        <GalleryImage
           key={currentSrc}
           src={currentSrc}
           alt={`${title} - foto ${safeIndex + 1}`}
-          wrapperClassName={`absolute inset-0 w-full h-full transition-opacity duration-500 ${
-            imageReady ? 'opacity-100' : 'opacity-0'
-          }`}
-          className="object-cover"
-          onLoad={() => setImageReady(true)}
         />
 
         {validImages.length > 1 && (
@@ -152,12 +185,12 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
       {galleryOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-8">
           <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-md gallery-backdrop-enter"
+            className="absolute inset-0 bg-black/80 backdrop-blur-md"
             onClick={() => setGalleryOpen(false)}
             aria-hidden
           />
 
-          <div className="relative w-full max-w-6xl max-h-[90vh] gallery-panel-enter">
+          <div className="relative w-full max-w-6xl max-h-[90vh]">
             <button
               type="button"
               onClick={() => setGalleryOpen(false)}
@@ -169,12 +202,11 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
 
             <div className="bg-white rounded-2xl overflow-hidden shadow-2xl">
               <div className="relative aspect-[16/10] bg-gray-900">
-                <ProtectedImage
+                <GalleryImage
                   key={validImages[lightboxIndex]}
                   src={validImages[lightboxIndex]}
                   alt={`${title} - foto ${lightboxIndex + 1}`}
-                  wrapperClassName="absolute inset-0 w-full h-full gallery-image-enter"
-                  className="object-contain"
+                  fit="contain"
                 />
                 {validImages.length > 1 && (
                   <>

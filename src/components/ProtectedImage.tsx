@@ -1,17 +1,14 @@
-import type { ImgHTMLAttributes, ReactNode } from 'react'
+import { forwardRef, type ImgHTMLAttributes, type ReactNode } from 'react'
 
 type ProtectedImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>, 'draggable'> & {
   wrapperClassName?: string
   children?: ReactNode
 }
 
-export default function ProtectedImage({
-  className = '',
-  wrapperClassName = '',
-  alt = '',
-  children,
-  ...imgProps
-}: ProtectedImageProps) {
+const ProtectedImage = forwardRef<HTMLImageElement, ProtectedImageProps>(function ProtectedImage(
+  { className = '', wrapperClassName = '', alt = '', children, ...imgProps },
+  ref,
+) {
   const blockEvent = (event: React.SyntheticEvent) => {
     event.preventDefault()
     event.stopPropagation()
@@ -27,6 +24,7 @@ export default function ProtectedImage({
     >
       <img
         {...imgProps}
+        ref={ref}
         alt={alt}
         draggable={false}
         className={`block w-full h-full pointer-events-none select-none ${className}`}
@@ -41,4 +39,6 @@ export default function ProtectedImage({
       {children}
     </div>
   )
-}
+})
+
+export default ProtectedImage

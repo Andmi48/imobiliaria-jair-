@@ -8,6 +8,15 @@ export type AdminUpdateEntry = {
 /** Histórico de atualizações — adicione a nova versão sempre no topo. */
 export const ADMIN_UPDATES: AdminUpdateEntry[] = [
   {
+    version: '2.4.5',
+    date: '2025-06-23',
+    title: 'Correção da galeria de fotos',
+    items: [
+      'Fotos dos imóveis não ficam mais em branco ao abrir o detalhe',
+      'Corrigido bug de imagens em cache que não apareciam na galeria',
+    ],
+  },
+  {
     version: '2.4.4',
     date: '2025-06-23',
     title: 'Marca d\'água discreta',
