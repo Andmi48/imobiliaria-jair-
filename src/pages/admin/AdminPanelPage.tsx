@@ -24,6 +24,7 @@ import AdminAboutSection from '../../components/admin/AdminAboutSection'
 import AdminTestimonialsSection from '../../components/admin/AdminTestimonialsSection'
 import AdminBackupSection from '../../components/admin/AdminBackupSection'
 import AdminSyncBanner from '../../components/admin/AdminSyncBanner'
+import AdminPublishBar from '../../components/admin/AdminPublishBar'
 import AdminUndoButton from '../../components/admin/AdminUndoButton'
 import AdminSectionLoader from '../../components/admin/AdminSectionLoader'
 
@@ -43,7 +44,7 @@ const tabs: Array<{ id: AdminTab; label: string; icon: typeof Home }> = [
 
 export default function AdminPanelPage() {
   const { logout } = useAdminAuth()
-  const { lastSyncStatus } = useSiteContent()
+  const { hasUnpublishedChanges, lastSyncStatus } = useSiteContent()
   const [activeTab, setActiveTab] = useState<AdminTab>('overview')
 
   return (
@@ -57,12 +58,15 @@ export default function AdminPanelPage() {
           <div className="flex items-center gap-2">
             <AdminUndoButton />
             {lastSyncStatus === 'syncing' && (
-              <span className="text-xs text-white/70 hidden sm:inline">Sincronizando...</span>
+              <span className="text-xs text-white/70 hidden sm:inline">Publicando...</span>
             )}
             {lastSyncStatus === 'error' && (
               <span className="text-xs text-red-300 hidden sm:inline">Erro ao publicar</span>
             )}
-            {lastSyncStatus === 'ok' && (
+            {hasUnpublishedChanges && lastSyncStatus !== 'syncing' && (
+              <span className="text-xs text-amber-300 hidden sm:inline">Rascunho</span>
+            )}
+            {!hasUnpublishedChanges && lastSyncStatus === 'ok' && (
               <span className="text-xs text-green-300 hidden sm:inline">Publicado</span>
             )}
             <Link
@@ -108,6 +112,7 @@ export default function AdminPanelPage() {
           </aside>
 
           <main className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8">
+            <AdminPublishBar />
             <AdminSyncBanner />
             <AdminSectionLoader>
             {activeTab === 'overview' && (
@@ -116,7 +121,7 @@ export default function AdminPanelPage() {
                   <h2 className="text-2xl font-bold text-gray-900">Bem-vindo ao painel</h2>
                   <p className="text-gray-600 mt-2">
                     Aqui você controla 100% do site: imóveis, fotos, textos, contatos e depoimentos.
-                    Ao salvar, as alterações são publicadas automaticamente na nuvem para todos os visitantes.
+                    As alterações ficam em rascunho até você clicar em <strong>Publicar no site</strong>.
                   </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

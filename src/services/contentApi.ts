@@ -3,6 +3,7 @@ import type { ContentHistoryEntry } from '../utils/contentClone'
 import { isCloudEnabled, supabase } from '../lib/supabase'
 import { normalizeSiteContent } from '../utils/contentMerge'
 import { validateContentForCloud } from '../utils/contentSanitize'
+import { getStoragePathFromPublicUrl } from '../utils/storagePaths'
 
 function isValidContent(data: unknown): data is SiteContent {
   if (!data || typeof data !== 'object') return false
@@ -160,4 +161,29 @@ export async function uploadPropertyImageWithFallback(file: File): Promise<strin
 
 export async function uploadPropertyImages(files: File[]): Promise<string[]> {
   return Promise.all(files.map((file) => uploadPropertyImageWithFallback(file)))
+}
+
+export type DeleteStorageResult = { ok: true; deleted: number } | { ok: false; error: string }
+
+/** Remove arquivos do bucket property-images (URLs públicas do Supabase). */
+export async function deleteStorageFiles(urls: string[]): Promise<DeleteStorageResult> {
+  if (!isCloudEnabled() || !supabase) {
+    return { ok: false, error: 'Supabase não configurado.' }
+  }
+
+  const paths = urls
+    .map(getStoragePathFromPublicUrl)
+    .filter((path): path is string => Boolean(path))
+
+  if (paths.length === 0) {
+    return { ok: true, deleted: 0 }
+  }
+
+  const { error } = await supabase.storage.from('property-images').remove(paths)
+
+  if (error) {
+    return { ok: false, error: error.message }
+  }
+
+  return { ok: true, deleted: paths.length }
 }

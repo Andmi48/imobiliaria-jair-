@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 
-import { Plus, Pencil, Trash2, Star, Search } from 'lucide-react'
+import { Plus, Pencil, Trash2, Star, Search, Share2 } from 'lucide-react'
 
 import type { Property } from '../../data/properties'
 
@@ -13,6 +13,10 @@ import { getOptionLabel } from '../../data/propertyOptions'
 import PropertyImagesManager from './PropertyImagesManager'
 
 import { adminInputClass, adminLabelClass } from './AdminFields'
+
+import DeleteConfirmModal, { type DeleteMode } from './DeleteConfirmModal'
+
+import PropertyShareBannerModal from './PropertyShareBannerModal'
 
 
 
@@ -79,6 +83,12 @@ export default function AdminPropertiesSection() {
   const [amenityInput, setAmenityInput] = useState('')
 
   const [customCity, setCustomCity] = useState('')
+
+  const [shareProperty, setShareProperty] = useState<Property | null>(null)
+
+  const [deleteTarget, setDeleteTarget] = useState<Property | null>(null)
+
+  const [deleting, setDeleting] = useState(false)
 
 
 
@@ -270,13 +280,29 @@ export default function AdminPropertiesSection() {
 
 
 
-  const handleDelete = (id: number) => {
+  const handleDeleteConfirm = async (mode: DeleteMode) => {
 
-    if (!confirm('Deseja excluir este imóvel?')) return
+    if (!deleteTarget) return
 
-    deleteProperty(id)
+    setDeleting(true)
 
-    if (editing?.id === id) setEditing(null)
+    try {
+
+      await deleteProperty(deleteTarget.id, { permanent: mode === 'permanent' })
+
+      if (editing?.id === deleteTarget.id) setEditing(null)
+
+      setDeleteTarget(null)
+
+    } catch (error) {
+
+      alert(error instanceof Error ? error.message : 'Falha ao excluir imóvel.')
+
+    } finally {
+
+      setDeleting(false)
+
+    }
 
   }
 
@@ -796,6 +822,22 @@ export default function AdminPropertiesSection() {
 
             type="button"
 
+            onClick={() => setShareProperty(editing)}
+
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-brand-blue text-brand-blue font-semibold hover:bg-brand-blue/5"
+
+          >
+
+            <Share2 className="w-4 h-4" />
+
+            Divulgar
+
+          </button>
+
+          <button
+
+            type="button"
+
             onClick={handleSave}
 
             className="px-5 py-2.5 rounded-lg bg-brand-blue text-white font-semibold hover:bg-brand-blue-dark"
@@ -960,6 +1002,22 @@ export default function AdminPropertiesSection() {
 
                       type="button"
 
+                      onClick={() => setShareProperty(property)}
+
+                      className="p-2 rounded-lg hover:bg-blue-50 text-brand-blue"
+
+                      title="Criar banner de divulgação"
+
+                    >
+
+                      <Share2 className="w-4 h-4" />
+
+                    </button>
+
+                    <button
+
+                      type="button"
+
                       onClick={() => startEdit(property)}
 
                       className="p-2 rounded-lg hover:bg-gray-100 text-gray-600"
@@ -976,7 +1034,7 @@ export default function AdminPropertiesSection() {
 
                       type="button"
 
-                      onClick={() => handleDelete(property.id)}
+                      onClick={() => setDeleteTarget(property)}
 
                       className="p-2 rounded-lg hover:bg-red-50 text-brand-red"
 
@@ -1001,6 +1059,38 @@ export default function AdminPropertiesSection() {
         </table>
 
       </div>
+
+      <DeleteConfirmModal
+
+        open={!!deleteTarget}
+
+        title="Excluir imóvel"
+
+        description="Escolha como deseja remover este imóvel. A exclusão permanente também apaga as fotos do armazenamento online."
+
+        itemLabel={deleteTarget?.title}
+
+        loading={deleting}
+
+        onClose={() => !deleting && setDeleteTarget(null)}
+
+        onConfirm={handleDeleteConfirm}
+
+      />
+
+      {shareProperty && (
+
+        <PropertyShareBannerModal
+
+          property={shareProperty}
+
+          open={!!shareProperty}
+
+          onClose={() => setShareProperty(null)}
+
+        />
+
+      )}
 
     </div>
 

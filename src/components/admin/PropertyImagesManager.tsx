@@ -10,7 +10,9 @@ import {
   Trash2,
 } from 'lucide-react'
 import { uploadPropertyImages } from '../../services/contentApi'
+import { useSiteContent } from '../../context/SiteContentContext'
 import { adminLabelClass } from './AdminFields'
+import DeleteConfirmModal, { type DeleteMode } from './DeleteConfirmModal'
 
 type PropertyImagesManagerProps = {
   images: string[]
@@ -23,11 +25,14 @@ export default function PropertyImagesManager({
   coverImage,
   onChange,
 }: PropertyImagesManagerProps) {
+  const { deletePropertyImages } = useSiteContent()
   const fileRef = useRef<HTMLInputElement>(null)
   const [urlInput, setUrlInput] = useState('')
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
   const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const addUrls = (urls: string[]) => {
     const valid = urls.map((url) => url.trim()).filter(Boolean)
@@ -60,10 +65,29 @@ export default function PropertyImagesManager({
     }
   }
 
-  const removeImage = (index: number) => {
+  const removeImageLocal = (index: number) => {
     const nextImages = images.filter((_, i) => i !== index)
     const nextCover = coverImage === images[index] ? (nextImages[0] ?? '') : coverImage
     onChange(nextImages, nextCover)
+  }
+
+  const handleDeleteConfirm = async (mode: DeleteMode) => {
+    if (deleteIndex === null) return
+    const url = images[deleteIndex]
+    if (!url) return
+
+    setDeleting(true)
+    try {
+      if (mode === 'permanent') {
+        await deletePropertyImages([url], { permanent: true })
+      }
+      removeImageLocal(deleteIndex)
+      setDeleteIndex(null)
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Falha ao excluir foto.')
+    } finally {
+      setDeleting(false)
+    }
   }
 
   const setCover = (index: number) => {
@@ -210,7 +234,7 @@ export default function PropertyImagesManager({
                     </button>
                     <button
                       type="button"
-                      onClick={() => removeImage(index)}
+                      onClick={() => setDeleteIndex(index)}
                       className="p-1.5 rounded-lg bg-red-50 text-brand-red hover:bg-red-100"
                       title="Remover foto"
                     >
@@ -223,6 +247,16 @@ export default function PropertyImagesManager({
           })}
         </div>
       )}
+
+      <DeleteConfirmModal
+        open={deleteIndex !== null}
+        title="Excluir foto"
+        description="Escolha se a foto deve ser removida apenas deste imóvel ou apagada permanentemente do armazenamento."
+        itemLabel={deleteIndex !== null ? `Foto ${deleteIndex + 1}` : undefined}
+        loading={deleting}
+        onClose={() => !deleting && setDeleteIndex(null)}
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   )
 }
