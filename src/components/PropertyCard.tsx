@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Bed, Bath, Maximize, MapPin, Heart } from 'lucide-react'
 import type { Property } from '../data/properties'
 import { useFavorites } from '../context/FavoritesContext'
+import ProtectedImage from './ProtectedImage'
 
 interface PropertyCardProps {
   property: Property
@@ -20,14 +21,15 @@ export default function PropertyCard({ property }: PropertyCardProps) {
     <article className="group relative bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
       <Link to={`/imovel/${property.id}`} className="block">
         <div className="relative overflow-hidden aspect-[4/3]">
-          <img
+          <ProtectedImage
             src={coverImage}
             alt={property.title}
+            wrapperClassName="w-full h-full"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />
           <span
-            className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-bold text-white ${
+            className={`absolute top-4 left-4 z-10 px-3 py-1 rounded-full text-xs font-bold text-white ${
               property.type === 'Venda' ? 'bg-brand-blue' : 'bg-brand-red'
             }`}
           >
@@ -35,7 +37,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           </span>
           <button
             type="button"
-            className={`absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
+            className={`absolute top-4 right-4 z-10 w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
               isFavorite
                 ? 'bg-brand-red text-white'
                 : 'bg-white/90 text-gray-600 hover:bg-brand-red hover:text-white'

@@ -4,6 +4,14 @@ import { isCloudEnabled, supabase } from '../lib/supabase'
 import { normalizeSiteContent } from '../utils/contentMerge'
 import { validateContentForCloud } from '../utils/contentSanitize'
 import { getStoragePathFromPublicUrl } from '../utils/storagePaths'
+import { applyWatermarkToFile } from '../utils/imageWatermark'
+
+export type ImageUploadOptions = {
+  logoUrl?: string
+  watermarkText?: string
+  /** Logo do site não recebe marca dágua */
+  skipWatermark?: boolean
+}
 
 function isValidContent(data: unknown): data is SiteContent {
   if (!data || typeof data !== 'object') return false
@@ -95,16 +103,25 @@ export async function restoreContentVersion(
   return { ok: true }
 }
 
-export async function uploadPropertyImage(file: File): Promise<string | null> {
+async function prepareImageForUpload(file: File, options?: ImageUploadOptions): Promise<File> {
+  if (options?.skipWatermark) return file
+  return applyWatermarkToFile(file, {
+    logoUrl: options?.logoUrl,
+    fallbackText: options?.watermarkText,
+  })
+}
+
+export async function uploadPropertyImage(file: File, options?: ImageUploadOptions): Promise<string | null> {
   if (!isCloudEnabled() || !supabase) return null
 
-  const extension = file.name.split('.').pop() || 'jpg'
+  const watermarked = await prepareImageForUpload(file, options)
+  const extension = watermarked.name.split('.').pop() || 'jpg'
   const filePath = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`
 
-  const { error } = await supabase.storage.from('property-images').upload(filePath, file, {
+  const { error } = await supabase.storage.from('property-images').upload(filePath, watermarked, {
     cacheControl: '3600',
     upsert: false,
-    contentType: file.type || `image/${extension === 'jpg' ? 'jpeg' : extension}`,
+    contentType: watermarked.type || `image/${extension === 'jpg' ? 'jpeg' : extension}`,
   })
 
   if (error) return null
@@ -148,19 +165,23 @@ function readFileAsDataUrl(file: File): Promise<string> {
   })
 }
 
-export async function uploadPropertyImageWithFallback(file: File): Promise<string> {
-  const url = await uploadPropertyImage(file)
+export async function uploadPropertyImageWithFallback(
+  file: File,
+  options?: ImageUploadOptions,
+): Promise<string> {
+  const watermarked = await prepareImageForUpload(file, options)
+  const url = await uploadPropertyImage(watermarked, { ...options, skipWatermark: true })
   if (url) return url
 
   if (isCloudEnabled()) {
     throw new Error('Falha ao enviar imagem para o armazenamento online. Verifique o Supabase Storage.')
   }
 
-  return readFileAsDataUrl(file)
+  return readFileAsDataUrl(watermarked)
 }
 
-export async function uploadPropertyImages(files: File[]): Promise<string[]> {
-  return Promise.all(files.map((file) => uploadPropertyImageWithFallback(file)))
+export async function uploadPropertyImages(files: File[], options?: ImageUploadOptions): Promise<string[]> {
+  return Promise.all(files.map((file) => uploadPropertyImageWithFallback(file, options)))
 }
 
 export type DeleteStorageResult = { ok: true; deleted: number } | { ok: false; error: string }

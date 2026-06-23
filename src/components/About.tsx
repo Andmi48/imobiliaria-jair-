@@ -1,4 +1,5 @@
 import { useSiteContent } from '../context/SiteContentContext'
+import ProtectedImage from './ProtectedImage'
 
 export default function About() {
   const { about } = useSiteContent()
@@ -8,9 +9,10 @@ export default function About() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="rounded-2xl overflow-hidden shadow-xl">
-            <img
+            <ProtectedImage
               src={about.image}
               alt={about.title}
+              wrapperClassName="w-full"
               className="w-full aspect-[4/3] object-cover"
             />
           </div>

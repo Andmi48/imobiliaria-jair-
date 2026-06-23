@@ -25,7 +25,7 @@ export default function PropertyImagesManager({
   coverImage,
   onChange,
 }: PropertyImagesManagerProps) {
-  const { deletePropertyImages } = useSiteContent()
+  const { deletePropertyImages, site } = useSiteContent()
   const fileRef = useRef<HTMLInputElement>(null)
   const [urlInput, setUrlInput] = useState('')
   const [uploading, setUploading] = useState(false)
@@ -33,6 +33,11 @@ export default function PropertyImagesManager({
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null)
   const [deleting, setDeleting] = useState(false)
+
+  const watermarkOptions = {
+    logoUrl: site.logoUrl,
+    watermarkText: `${site.shortName || site.name} • CRECI ${site.creci}`,
+  }
 
   const addUrls = (urls: string[]) => {
     const valid = urls.map((url) => url.trim()).filter(Boolean)
@@ -53,7 +58,7 @@ export default function PropertyImagesManager({
       const uploaded: string[] = []
       for (let index = 0; index < files.length; index += 1) {
         setUploadProgress(`Enviando ${index + 1} de ${files.length}...`)
-        const batch = await uploadPropertyImages([files[index]])
+        const batch = await uploadPropertyImages([files[index]], watermarkOptions)
         uploaded.push(...batch)
       }
       addUrls(uploaded)
@@ -122,6 +127,7 @@ export default function PropertyImagesManager({
         <label className={adminLabelClass}>Fotos do imóvel</label>
         <p className="text-xs text-gray-500 mb-3">
           Envie várias fotos de uma vez, arraste para ordenar e clique em &quot;Capa&quot; para definir a foto principal.
+          Todas as fotos são salvas automaticamente com a marca d&apos;água da logo.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-2 mb-3">

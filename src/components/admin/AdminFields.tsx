@@ -1,6 +1,7 @@
 import { useRef, type ChangeEvent } from 'react'
 import { ImagePlus, Link as LinkIcon } from 'lucide-react'
 import { uploadPropertyImageWithFallback } from '../../services/contentApi'
+import { useSiteContent } from '../../context/SiteContentContext'
 
 type ImageFieldProps = {
   label: string
@@ -16,6 +17,12 @@ export default function ImageField({
   previewClassName = 'h-28 w-full object-cover rounded-lg border border-gray-200',
 }: ImageFieldProps) {
   const fileRef = useRef<HTMLInputElement>(null)
+  const { site } = useSiteContent()
+
+  const watermarkOptions = {
+    logoUrl: site.logoUrl,
+    watermarkText: `${site.shortName || site.name} • CRECI ${site.creci}`,
+  }
 
   const handleFile = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -23,7 +30,7 @@ export default function ImageField({
 
     void (async () => {
       try {
-        const url = await uploadPropertyImageWithFallback(file)
+        const url = await uploadPropertyImageWithFallback(file, watermarkOptions)
         onChange(url)
       } catch (error) {
         alert(error instanceof Error ? error.message : 'Falha ao enviar imagem.')

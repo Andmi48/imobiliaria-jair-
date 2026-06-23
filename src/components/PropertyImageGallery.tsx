@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { ChevronLeft, ChevronRight, X, Grid3X3 } from 'lucide-react'
 import type { PropertyType } from '../data/properties'
+import ProtectedImage from './ProtectedImage'
 
 interface PropertyImageGalleryProps {
   images: string[]
@@ -53,13 +54,14 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
         onMouseLeave={() => setPaused(false)}
       >
         {images.map((src, i) => (
-          <img
+          <ProtectedImage
             key={src}
             src={src}
             alt={`${title} - foto ${i + 1}`}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
+            wrapperClassName={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${
               i === index ? 'opacity-100' : 'opacity-0'
             }`}
+            className="w-full h-full object-cover"
           />
         ))}
 
@@ -68,19 +70,19 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
             <button
               type="button"
               onClick={prev}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute left-4 top-1/2 z-10 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               type="button"
               onClick={next}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute right-4 top-1/2 z-10 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
 
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+            <div className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 flex gap-2">
               {images.map((_, i) => (
                 <button
                   key={i}
@@ -96,7 +98,7 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
         )}
 
         <span
-          className={`absolute top-4 left-4 px-4 py-1.5 rounded-full text-sm font-bold text-white ${
+          className={`absolute top-4 left-4 z-10 px-4 py-1.5 rounded-full text-sm font-bold text-white ${
             type === 'Venda' ? 'bg-brand-blue' : 'bg-brand-red'
           }`}
         >
@@ -107,7 +109,7 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
           <button
             type="button"
             onClick={openGallery}
-            className="absolute bottom-4 right-4 flex items-center gap-2 bg-white/95 hover:bg-white text-gray-800 px-4 py-2 rounded-full text-sm font-semibold shadow-lg transition-all hover:scale-105"
+            className="absolute bottom-4 right-4 z-10 flex items-center gap-2 bg-white/95 hover:bg-white text-gray-800 px-4 py-2 rounded-full text-sm font-semibold shadow-lg transition-all hover:scale-105"
           >
             <Grid3X3 className="w-4 h-4" />
             Ver todas
@@ -135,11 +137,12 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
 
             <div className="bg-white rounded-2xl overflow-hidden shadow-2xl">
               <div className="relative aspect-[16/10] bg-gray-900">
-                <img
+                <ProtectedImage
                   key={lightboxIndex}
                   src={images[lightboxIndex]}
                   alt={`${title} - foto ${lightboxIndex + 1}`}
-                  className="w-full h-full object-contain gallery-image-enter"
+                  wrapperClassName="w-full h-full gallery-image-enter"
+                  className="w-full h-full object-contain"
                 />
                 {images.length > 1 && (
                   <>
@@ -148,20 +151,20 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
                       onClick={() =>
                         setLightboxIndex((i) => (i - 1 + images.length) % images.length)
                       }
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white"
+                      className="absolute left-4 top-1/2 z-10 -translate-y-1/2 w-11 h-11 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white"
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
                     <button
                       type="button"
                       onClick={() => setLightboxIndex((i) => (i + 1) % images.length)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white"
+                      className="absolute right-4 top-1/2 z-10 -translate-y-1/2 w-11 h-11 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white"
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
                   </>
                 )}
-                <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/80 text-sm bg-black/40 px-3 py-1 rounded-full">
+                <span className="absolute bottom-4 left-1/2 z-10 -translate-x-1/2 text-white/80 text-sm bg-black/40 px-3 py-1 rounded-full">
                   {lightboxIndex + 1} / {images.length}
                 </span>
               </div>
@@ -178,7 +181,7 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
                         : 'opacity-70 hover:opacity-100'
                     }`}
                   >
-                    <img src={src} alt="" className="w-full h-full object-cover" />
+                    <ProtectedImage src={src} alt="" wrapperClassName="w-full h-full" className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>

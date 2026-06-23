@@ -16,6 +16,16 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.site-protected img {
+  -webkit-user-drag: none;
+  user-drag: none;
+  user-select: none;
+}
+
+.protected-image img {
+  -webkit-touch-callout: none;
+}
+
 @keyframes hero-pan {
   0% {
     transform: scale(1.08) translate(0%, 0%);
