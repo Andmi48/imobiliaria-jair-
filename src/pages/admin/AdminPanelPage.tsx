@@ -27,6 +27,8 @@ import AdminSyncBanner from '../../components/admin/AdminSyncBanner'
 import AdminPublishBar from '../../components/admin/AdminPublishBar'
 import AdminUndoButton from '../../components/admin/AdminUndoButton'
 import AdminSectionLoader from '../../components/admin/AdminSectionLoader'
+import AdminUpdateNotifier from '../../components/admin/AdminUpdateNotifier'
+import AdminUpdatesSection from '../../components/admin/AdminUpdatesSection'
 
 type AdminTab = 'overview' | 'logo' | 'properties' | 'property-options' | 'site' | 'hero' | 'about' | 'testimonials' | 'backup'
 
@@ -49,6 +51,7 @@ export default function AdminPanelPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      <AdminUpdateNotifier />
       <header className="bg-[#0c1a2e] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4">
           <div>
@@ -139,6 +142,7 @@ export default function AdminPanelPage() {
                       </button>
                     ))}
                 </div>
+                <AdminUpdatesSection />
               </div>
             )}
             {activeTab === 'logo' && <AdminLogoSection />}

@@ -1,0 +1,81 @@
+export type AdminUpdateEntry = {
+  version: string
+  date: string
+  title: string
+  items: string[]
+}
+
+/** Histórico de atualizações — adicione a nova versão sempre no topo. */
+export const ADMIN_UPDATES: AdminUpdateEntry[] = [
+  {
+    version: '2.4.0',
+    date: '2025-06-23',
+    title: 'Banners profissionais e aviso de atualização',
+    items: [
+      'Banners redesenhados com fotos maiores e descrição completa do imóvel',
+      '5 layouts distintos: Destaque, Editorial, Cinematográfico, Galeria e Mosaico',
+      'Paleta de cores e posição da logo / Venda-Locação no banner',
+      'Aviso de novas atualizações no canto inferior direito do painel',
+    ],
+  },
+  {
+    version: '2.3.0',
+    date: '2025-06-23',
+    title: 'Login e galeria de fotos',
+    items: [
+      'Login: botão "Esqueci a senha" e olhinho para ver a senha',
+      'Correção da galeria — todas as fotos do imóvel carregam corretamente',
+      'Marca d\'água reforçada no upload de fotos',
+    ],
+  },
+  {
+    version: '2.2.0',
+    date: '2025-06-22',
+    title: 'Divulgação e modo rascunho',
+    items: [
+      'Botão Divulgar com geração de banners para Instagram',
+      'Modo rascunho: alterações só vão ao site após "Publicar no site"',
+      'Exclusão permanente de fotos e imóveis no Supabase Storage',
+      'Campo de destaque para redução de preço no banner',
+    ],
+  },
+  {
+    version: '2.1.0',
+    date: '2025-06-22',
+    title: 'Proteção de imagens',
+    items: [
+      'Marca d\'água automática com logo em fotos enviadas pelo painel',
+      'Bloqueio de cópia e clique direito nas fotos do site público',
+    ],
+  },
+]
+
+export const LATEST_ADMIN_UPDATE_VERSION = ADMIN_UPDATES[0]?.version ?? '0.0.0'
+
+export const ADMIN_LAST_SEEN_UPDATE_KEY = 'jairacosta-admin-last-seen-update'
+
+export function formatUpdateDate(isoDate: string): string {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  const date = new Date(year, month - 1, day)
+  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+export function readLastSeenUpdateVersion(): string | null {
+  try {
+    return localStorage.getItem(ADMIN_LAST_SEEN_UPDATE_KEY)
+  } catch {
+    return null
+  }
+}
+
+export function markUpdateAsSeen(version = LATEST_ADMIN_UPDATE_VERSION) {
+  try {
+    localStorage.setItem(ADMIN_LAST_SEEN_UPDATE_KEY, version)
+  } catch {
+    // ignore
+  }
+}
+
+export function hasUnseenAdminUpdate(): boolean {
+  return readLastSeenUpdateVersion() !== LATEST_ADMIN_UPDATE_VERSION
+}
