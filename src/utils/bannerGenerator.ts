@@ -1,19 +1,21 @@
 import type { Property } from '../data/properties'
 import type { SiteConfig } from '../types/content'
 
+export const MAX_BANNER_PHOTOS = 5
+
 export type BannerTemplateId = 'classic' | 'modern' | 'bold' | 'minimal' | 'collage'
 
 export const BANNER_TEMPLATES: Array<{
   id: BannerTemplateId
   name: string
   description: string
-  maxPhotos: number
+  usesMultiplePhotos: boolean
 }> = [
-  { id: 'classic', name: 'Clássico', description: 'Foto grande com faixa azul e preço em destaque', maxPhotos: 1 },
-  { id: 'modern', name: 'Moderno', description: 'Foto à esquerda, informações à direita', maxPhotos: 1 },
-  { id: 'bold', name: 'Impacto', description: 'Faixa vermelha com preço em evidência', maxPhotos: 1 },
-  { id: 'minimal', name: 'Minimalista', description: 'Borda branca elegante e texto discreto', maxPhotos: 1 },
-  { id: 'collage', name: 'Colagem', description: 'Até 3 fotos em mosaico', maxPhotos: 3 },
+  { id: 'classic', name: 'Clássico', description: 'Foto principal + faixa azul com preço', usesMultiplePhotos: false },
+  { id: 'modern', name: 'Moderno', description: 'Foto à esquerda, dados à direita', usesMultiplePhotos: false },
+  { id: 'bold', name: 'Impacto', description: 'Foto de fundo com faixa vermelha', usesMultiplePhotos: false },
+  { id: 'minimal', name: 'Minimalista', description: 'Moldura branca elegante', usesMultiplePhotos: false },
+  { id: 'collage', name: 'Colagem', description: 'Mosaico com até 5 fotos selecionadas', usesMultiplePhotos: true },
 ]
 
 const W = 1080
@@ -28,14 +30,46 @@ const COLORS = {
   dark: '#111827',
 }
 
-function loadImage(url: string): Promise<HTMLImageElement> {
+function loadImageElement(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image()
-    img.crossOrigin = 'anonymous'
     img.onload = () => resolve(img)
-    img.onerror = () => reject(new Error(`Não foi possível carregar a imagem: ${url}`))
-    img.src = url
+    img.onerror = () => reject(new Error('Não foi possível processar uma das fotos selecionadas.'))
+    img.src = src
   })
+}
+
+/** Carrega imagem via blob para evitar bloqueio CORS no canvas. */
+async function loadImage(url: string): Promise<HTMLImageElement> {
+  if (url.startsWith('data:') || url.startsWith('blob:')) {
+    return loadImageElement(url)
+  }
+
+  try {
+    const response = await fetch(url, { mode: 'cors', credentials: 'omit', cache: 'no-store' })
+    if (!response.ok) throw new Error('fetch failed')
+    const blob = await response.blob()
+    const objectUrl = URL.createObjectURL(blob)
+    try {
+      return await loadImageElement(objectUrl)
+    } finally {
+      URL.revokeObjectURL(objectUrl)
+    }
+  } catch {
+    // Fallback: tenta carregar direto (funciona se CORS permitir)
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    return new Promise((resolve, reject) => {
+      img.onload = () => resolve(img)
+      img.onerror = () =>
+        reject(
+          new Error(
+            'Não foi possível carregar as fotos para o banner. Tente novamente ou use fotos enviadas pelo painel.',
+          ),
+        )
+      img.src = url
+    })
+  }
 }
 
 function drawCoverImage(
@@ -71,11 +105,7 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
   return lines
 }
 
-function drawFooter(
-  ctx: CanvasRenderingContext2D,
-  site: SiteConfig,
-  y: number,
-) {
+function drawFooter(ctx: CanvasRenderingContext2D, site: SiteConfig, y: number) {
   ctx.fillStyle = COLORS.white
   ctx.font = 'bold 28px Inter, Arial, sans-serif'
   ctx.fillText(site.shortName || site.name, 48, y)
@@ -94,39 +124,96 @@ function drawPropertyInfo(
   light = false,
 ) {
   ctx.fillStyle = light ? COLORS.white : COLORS.dark
-  ctx.font = 'bold 42px Inter, Arial, sans-serif'
+  ctx.font = 'bold 40px Inter, Arial, sans-serif'
   const titleLines = wrapText(ctx, property.title, maxWidth)
   titleLines.slice(0, 2).forEach((line, i) => {
-    ctx.fillText(line, x, y + i * 48)
+    ctx.fillText(line, x, y + i * 46)
   })
 
-  const locY = y + titleLines.slice(0, 2).length * 48 + 12
-  ctx.font = '24px Inter, Arial, sans-serif'
+  const locY = y + titleLines.slice(0, 2).length * 46 + 10
+  ctx.font = '22px Inter, Arial, sans-serif'
   ctx.fillStyle = light ? 'rgba(255,255,255,0.85)' : COLORS.gray
   ctx.fillText(`${property.location} • ${property.city}`, x, locY)
 
   ctx.fillStyle = COLORS.red
-  ctx.font = 'bold 52px Inter, Arial, sans-serif'
-  ctx.fillText(property.price, x, locY + 64)
+  ctx.font = 'bold 48px Inter, Arial, sans-serif'
+  ctx.fillText(property.price, x, locY + 58)
 
   ctx.fillStyle = light ? 'rgba(255,255,255,0.8)' : COLORS.gray
-  ctx.font = '22px Inter, Arial, sans-serif'
+  ctx.font = '20px Inter, Arial, sans-serif'
   ctx.fillText(
     `${property.bedrooms} quartos • ${property.bathrooms} banh. • ${property.area}m²`,
     x,
-    locY + 110,
+    locY + 100,
   )
 }
 
-async function renderClassic(ctx: CanvasRenderingContext2D, photos: HTMLImageElement[], property: Property, site: SiteConfig) {
+function drawCollagePhotos(ctx: CanvasRenderingContext2D, photos: HTMLImageElement[], topH: number) {
+  const gap = 6
+  const n = photos.length
+
+  if (n === 1) {
+    drawCoverImage(ctx, photos[0], 0, 0, W, topH)
+    return
+  }
+
+  if (n === 2) {
+    const w = (W - gap) / 2
+    drawCoverImage(ctx, photos[0], 0, 0, w, topH)
+    drawCoverImage(ctx, photos[1], w + gap, 0, w, topH)
+    return
+  }
+
+  if (n === 3) {
+    drawCoverImage(ctx, photos[0], 0, 0, W * 0.62 - gap / 2, topH)
+    const rightW = W * 0.38 - gap / 2
+    const halfH = (topH - gap) / 2
+    drawCoverImage(ctx, photos[1], W * 0.62 + gap / 2, 0, rightW, halfH)
+    drawCoverImage(ctx, photos[2], W * 0.62 + gap / 2, halfH + gap, rightW, halfH)
+    return
+  }
+
+  if (n === 4) {
+    const w = (W - gap) / 2
+    const h = (topH - gap) / 2
+    drawCoverImage(ctx, photos[0], 0, 0, w, h)
+    drawCoverImage(ctx, photos[1], w + gap, 0, w, h)
+    drawCoverImage(ctx, photos[2], 0, h + gap, w, h)
+    drawCoverImage(ctx, photos[3], w + gap, h + gap, w, h)
+    return
+  }
+
+  // 5 fotos: 3 em cima, 2 embaixo
+  const row1H = (topH - gap) * 0.58
+  const row2H = topH - row1H - gap
+  const w3 = (W - gap * 2) / 3
+  drawCoverImage(ctx, photos[0], 0, 0, w3, row1H)
+  drawCoverImage(ctx, photos[1], w3 + gap, 0, w3, row1H)
+  drawCoverImage(ctx, photos[2], (w3 + gap) * 2, 0, w3, row1H)
+  const w2 = (W - gap) / 2
+  drawCoverImage(ctx, photos[3], 0, row1H + gap, w2, row2H)
+  drawCoverImage(ctx, photos[4], w2 + gap, row1H + gap, w2, row2H)
+}
+
+async function renderClassic(
+  ctx: CanvasRenderingContext2D,
+  photos: HTMLImageElement[],
+  property: Property,
+  site: SiteConfig,
+) {
   drawCoverImage(ctx, photos[0], 0, 0, W, H * 0.62)
   ctx.fillStyle = COLORS.blueDark
   ctx.fillRect(0, H * 0.62, W, H * 0.38)
-  drawPropertyInfo(ctx, property, 48, H * 0.62 + 72, W - 96, true)
+  drawPropertyInfo(ctx, property, 48, H * 0.62 + 64, W - 96, true)
   drawFooter(ctx, site, H - 48)
 }
 
-async function renderModern(ctx: CanvasRenderingContext2D, photos: HTMLImageElement[], property: Property, site: SiteConfig) {
+async function renderModern(
+  ctx: CanvasRenderingContext2D,
+  photos: HTMLImageElement[],
+  property: Property,
+  site: SiteConfig,
+) {
   ctx.fillStyle = COLORS.white
   ctx.fillRect(0, 0, W, H)
   drawCoverImage(ctx, photos[0], 0, 0, W * 0.52, H)
@@ -144,7 +231,12 @@ async function renderModern(ctx: CanvasRenderingContext2D, photos: HTMLImageElem
   ctx.fillText(`CRECI ${site.creci}`, W * 0.52 + 40, H - 44)
 }
 
-async function renderBold(ctx: CanvasRenderingContext2D, photos: HTMLImageElement[], property: Property, site: SiteConfig) {
+async function renderBold(
+  ctx: CanvasRenderingContext2D,
+  photos: HTMLImageElement[],
+  property: Property,
+  site: SiteConfig,
+) {
   drawCoverImage(ctx, photos[0], 0, 0, W, H)
   ctx.fillStyle = 'rgba(0,0,0,0.45)'
   ctx.fillRect(0, 0, W, H)
@@ -162,7 +254,12 @@ async function renderBold(ctx: CanvasRenderingContext2D, photos: HTMLImageElemen
   ctx.fillText(site.shortName || site.name, 48, H - 56)
 }
 
-async function renderMinimal(ctx: CanvasRenderingContext2D, photos: HTMLImageElement[], property: Property, site: SiteConfig) {
+async function renderMinimal(
+  ctx: CanvasRenderingContext2D,
+  photos: HTMLImageElement[],
+  property: Property,
+  site: SiteConfig,
+) {
   ctx.fillStyle = '#f3f4f6'
   ctx.fillRect(0, 0, W, H)
   const pad = 40
@@ -178,22 +275,22 @@ async function renderMinimal(ctx: CanvasRenderingContext2D, photos: HTMLImageEle
   ctx.fillText(`CRECI ${site.creci}`, pad + 48, H - pad - 20)
 }
 
-async function renderCollage(ctx: CanvasRenderingContext2D, photos: HTMLImageElement[], property: Property, site: SiteConfig) {
+async function renderCollage(
+  ctx: CanvasRenderingContext2D,
+  photos: HTMLImageElement[],
+  property: Property,
+  site: SiteConfig,
+) {
+  const infoH = H * 0.32
+  const photoAreaH = H - infoH - 8
+
   ctx.fillStyle = COLORS.blueDark
-  ctx.fillRect(0, 0, W, H)
-  if (photos.length >= 3) {
-    drawCoverImage(ctx, photos[0], 0, 0, W * 0.6, H * 0.65)
-    drawCoverImage(ctx, photos[1], W * 0.6, 0, W * 0.4, H * 0.32)
-    drawCoverImage(ctx, photos[2], W * 0.6, H * 0.32, W * 0.4, H * 0.33)
-  } else if (photos.length === 2) {
-    drawCoverImage(ctx, photos[0], 0, 0, W * 0.5, H * 0.65)
-    drawCoverImage(ctx, photos[1], W * 0.5, 0, W * 0.5, H * 0.65)
-  } else {
-    drawCoverImage(ctx, photos[0], 0, 0, W, H * 0.65)
-  }
+  ctx.fillRect(0, 0, W, photoAreaH)
+  drawCollagePhotos(ctx, photos.slice(0, MAX_BANNER_PHOTOS), photoAreaH)
+
   ctx.fillStyle = COLORS.red
-  ctx.fillRect(0, H * 0.65, W, H * 0.35)
-  drawPropertyInfo(ctx, property, 48, H * 0.65 + 60, W - 96, true)
+  ctx.fillRect(0, photoAreaH + 8, W, infoH - 8)
+  drawPropertyInfo(ctx, property, 48, photoAreaH + 56, W - 96, true)
   ctx.font = 'bold 22px Inter, Arial, sans-serif'
   ctx.fillStyle = COLORS.white
   ctx.fillText(site.shortName || site.name, 48, H - 36)
@@ -219,7 +316,11 @@ export interface BannerInput {
 
 export async function generateBannerBlob(input: BannerInput): Promise<Blob> {
   const template = BANNER_TEMPLATES.find((t) => t.id === input.templateId) ?? BANNER_TEMPLATES[0]
-  const selectedPhotos = input.photos.slice(0, template.maxPhotos)
+  const photoCount = template.usesMultiplePhotos
+    ? Math.min(input.photos.length, MAX_BANNER_PHOTOS)
+    : 1
+
+  const selectedPhotos = input.photos.slice(0, photoCount)
   if (selectedPhotos.length === 0) {
     throw new Error('Selecione pelo menos uma foto.')
   }
@@ -238,7 +339,7 @@ export async function generateBannerBlob(input: BannerInput): Promise<Blob> {
     canvas.toBlob(
       (blob) => {
         if (blob) resolve(blob)
-        else reject(new Error('Falha ao gerar imagem do banner.'))
+        else reject(new Error('Falha ao gerar imagem do banner. Tente com menos fotos ou outro modelo.'))
       },
       'image/png',
       1,
