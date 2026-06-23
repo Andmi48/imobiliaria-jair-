@@ -127,7 +127,7 @@ export default function PropertyImagesManager({
         <label className={adminLabelClass}>Fotos do imóvel</label>
         <p className="text-xs text-gray-500 mb-3">
           Envie várias fotos de uma vez, arraste para ordenar e clique em &quot;Capa&quot; para definir a foto principal.
-          Cada foto enviada recebe automaticamente a marca d&apos;água com a logo. Fotos antigas ou por URL precisam ser reenviadas.
+          Cada foto enviada recebe uma marca d&apos;água discreta (logo centralizada e semitransparente). Fotos antigas precisam ser reenviadas.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-2 mb-3">

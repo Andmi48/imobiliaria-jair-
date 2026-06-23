@@ -8,6 +8,16 @@ export type AdminUpdateEntry = {
 /** Histórico de atualizações — adicione a nova versão sempre no topo. */
 export const ADMIN_UPDATES: AdminUpdateEntry[] = [
   {
+    version: '2.4.4',
+    date: '2025-06-23',
+    title: 'Marca d\'água discreta',
+    items: [
+      'Marca d\'água agora é apenas uma logo centralizada e semitransparente',
+      'Removido o padrão repetido que cobria as fotos',
+      'Reenvie fotos antigas para aplicar o novo estilo',
+    ],
+  },
+  {
     version: '2.4.3',
     date: '2025-06-23',
     title: 'Banner Destaque ajustado',

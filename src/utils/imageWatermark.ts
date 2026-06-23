@@ -31,7 +31,6 @@ function loadImageElement(src: string): Promise<HTMLImageElement> {
   })
 }
 
-/** Carrega URL via blob — evita bloqueio CORS (logo do Supabase). */
 async function loadImageFromUrl(url: string): Promise<HTMLImageElement> {
   if (url.startsWith('data:') || url.startsWith('blob:')) {
     return loadImageElement(url)
@@ -57,75 +56,45 @@ async function loadImageFromUrl(url: string): Promise<HTMLImageElement> {
   }
 }
 
-function drawTextWatermark(
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  text: string,
-  opacity: number,
-) {
-  const fontSize = Math.max(22, Math.round(Math.min(width, height) * 0.045))
-  ctx.save()
-  ctx.globalAlpha = opacity
-  ctx.font = `bold ${fontSize}px Inter, Arial, sans-serif`
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-
-  const stepX = fontSize * Math.max(text.length * 0.45, 8)
-  const stepY = fontSize * 3.2
-
-  for (let y = -height; y < height * 2; y += stepY) {
-    for (let x = -width; x < width * 2; x += stepX) {
-      ctx.save()
-      ctx.translate(x, y)
-      ctx.rotate((-30 * Math.PI) / 180)
-      ctx.lineWidth = 3
-      ctx.strokeStyle = `rgba(0,0,0,${opacity * 0.7})`
-      ctx.strokeText(text, 0, 0)
-      ctx.fillStyle = `rgba(255,255,255,${opacity + 0.15})`
-      ctx.fillText(text, 0, 0)
-      ctx.restore()
-    }
-  }
-  ctx.restore()
-}
-
-function drawLogoWatermark(
+/** Uma única logo centralizada, semitransparente */
+function drawCenteredLogoWatermark(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
   logo: HTMLImageElement,
   opacity: number,
 ) {
-  const tileW = Math.min(width, height) * 0.26
-  const tileH = (logo.height / logo.width) * tileW
-  const stepX = tileW * 1.5
-  const stepY = tileH * 2
+  const maxW = Math.min(width, height) * 0.38
+  const logoW = maxW
+  const logoH = (logo.height / logo.width) * logoW
+  const x = (width - logoW) / 2
+  const y = (height - logoH) / 2
 
   ctx.save()
   ctx.globalAlpha = opacity
+  ctx.drawImage(logo, x, y, logoW, logoH)
+  ctx.restore()
+}
 
-  for (let y = -height; y < height * 2; y += stepY) {
-    for (let x = -width; x < width * 2; x += stepX) {
-      ctx.save()
-      ctx.translate(x + tileW / 2, y + tileH / 2)
-      ctx.rotate((-30 * Math.PI) / 180)
-      // Sombra para contraste em fotos claras e escuras
-      ctx.shadowColor = 'rgba(0,0,0,0.45)'
-      ctx.shadowBlur = 8
-      ctx.drawImage(logo, -tileW / 2, -tileH / 2, tileW, tileH)
-      ctx.restore()
-    }
-  }
-
-  // Logo central grande
-  const centerW = Math.min(width, height) * 0.42
-  const centerH = (logo.height / logo.width) * centerW
-  ctx.globalAlpha = Math.min(opacity + 0.12, 0.75)
-  ctx.shadowColor = 'rgba(0,0,0,0.5)'
-  ctx.shadowBlur = 16
-  ctx.drawImage(logo, (width - centerW) / 2, (height - centerH) / 2, centerW, centerH)
-
+/** Texto único centralizado quando não há logo */
+function drawCenteredTextWatermark(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  text: string,
+  opacity: number,
+) {
+  const fontSize = Math.max(20, Math.round(Math.min(width, height) * 0.04))
+  ctx.save()
+  ctx.globalAlpha = opacity
+  ctx.font = `bold ${fontSize}px Inter, Arial, sans-serif`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillStyle = 'rgba(255,255,255,0.95)'
+  ctx.strokeStyle = `rgba(0,0,0,${opacity * 0.6})`
+  ctx.lineWidth = 2
+  ctx.strokeText(text, width / 2, height / 2)
+  ctx.fillText(text, width / 2, height / 2)
   ctx.restore()
 }
 
@@ -145,11 +114,11 @@ function canvasToFile(canvas: HTMLCanvasElement, fileName: string, type: string)
   })
 }
 
-/** Aplica marca dágua com a logo (ou texto) e retorna novo arquivo pronto para upload. */
+/** Aplica uma marca d'água discreta no centro da foto (logo ou texto). */
 export async function applyWatermarkToFile(file: File, options: WatermarkOptions = {}): Promise<File> {
   const source = await loadImageFromFile(file)
-  const opacity = options.opacity ?? 0.55
-  const fallbackText = options.fallbackText?.trim() || 'Jair A Costa • Imóvel protegido'
+  const opacity = options.opacity ?? 0.32
+  const fallbackText = options.fallbackText?.trim() || 'Jair A Costa'
 
   let width = source.width
   let height = source.height
@@ -167,19 +136,16 @@ export async function applyWatermarkToFile(file: File, options: WatermarkOptions
 
   ctx.drawImage(source, 0, 0, width, height)
 
-  let logoApplied = false
   if (options.logoUrl?.trim()) {
     try {
       const logo = await loadImageFromUrl(options.logoUrl.trim())
-      drawLogoWatermark(ctx, width, height, logo, opacity)
-      logoApplied = true
+      drawCenteredLogoWatermark(ctx, width, height, logo, opacity)
     } catch {
-      // continua com texto
+      drawCenteredTextWatermark(ctx, width, height, fallbackText, opacity)
     }
+  } else {
+    drawCenteredTextWatermark(ctx, width, height, fallbackText, opacity)
   }
-
-  // Sempre aplica texto (reforço mesmo com logo)
-  drawTextWatermark(ctx, width, height, fallbackText, logoApplied ? opacity * 0.45 : opacity)
 
   const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg'
   const extension = outputType === 'image/png' ? 'png' : 'jpg'
