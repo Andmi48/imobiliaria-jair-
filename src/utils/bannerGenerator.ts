@@ -13,11 +13,31 @@ export const BANNER_TEMPLATES: Array<{
   name: string
   description: string
 }> = [
-  { id: 'classic', name: 'Clássico', description: 'Mosaico de fotos + painel elegante com destaques' },
-  { id: 'modern', name: 'Moderno', description: 'Fotos à esquerda, informações organizadas à direita' },
-  { id: 'bold', name: 'Impacto', description: 'Fotos em tela cheia com sobreposição sofisticada' },
-  { id: 'minimal', name: 'Elegante', description: 'Moldura clara com layout limpo e premium' },
-  { id: 'collage', name: 'Colagem', description: 'Máximo de fotos com cartão de informações flutuante' },
+  {
+    id: 'classic',
+    name: 'Destaque',
+    description: 'Foto principal grande (72%) + faixa de informações com descrição completa',
+  },
+  {
+    id: 'modern',
+    name: 'Editorial',
+    description: 'Foto em tela cheia à esquerda + painel lateral com texto e descrição',
+  },
+  {
+    id: 'bold',
+    name: 'Cinematográfico',
+    description: 'Imagem de fundo imersiva com texto sobreposto e preço em destaque',
+  },
+  {
+    id: 'minimal',
+    name: 'Galeria',
+    description: 'Duas fotos grandes no topo + descrição em duas colunas abaixo',
+  },
+  {
+    id: 'collage',
+    name: 'Mosaico Premium',
+    description: 'Composição assimétrica de fotos com cartão flutuante de informações',
+  },
 ]
 
 export const BANNER_PALETTES: Array<{
@@ -30,31 +50,31 @@ export const BANNER_PALETTES: Array<{
     id: 'sapphire',
     name: 'Safira',
     swatch: ['#0f172a', '#38bdf8', '#fbbf24'],
-    description: 'Azul profundo com detalhes dourados — transmite confiança',
+    description: 'Azul profundo com detalhes dourados',
   },
   {
     id: 'emerald',
     name: 'Esmeralda',
     swatch: ['#064e3b', '#34d399', '#a7f3d0'],
-    description: 'Verde sofisticado — sensação de oportunidade e crescimento',
+    description: 'Verde sofisticado e acolhedor',
   },
   {
     id: 'gold',
     name: 'Ouro Premium',
     swatch: ['#1c1917', '#fbbf24', '#fef3c7'],
-    description: 'Tom escuro com ouro — imóvel de alto padrão',
+    description: 'Elegância escura com ouro',
   },
   {
     id: 'slate',
     name: 'Grafite',
     swatch: ['#1f2937', '#e5e7eb', '#93c5fd'],
-    description: 'Neutro elegante com azul suave — atemporal',
+    description: 'Neutro atemporal',
   },
   {
     id: 'ocean',
     name: 'Oceano',
     swatch: ['#0c4a6e', '#22d3ee', '#bae6fd'],
-    description: 'Azul claro e fresco — convida à visita',
+    description: 'Azul fresco e convidativo',
   },
 ]
 
@@ -94,15 +114,15 @@ type Palette = {
 const PALETTES: Record<BannerPaletteId, Palette> = {
   sapphire: {
     panelBg: '#0f172a',
-    panelBgSoft: 'rgba(15,23,42,0.92)',
+    panelBgSoft: 'rgba(15,23,42,0.88)',
     titleColor: '#ffffff',
-    textColor: 'rgba(255,255,255,0.92)',
-    mutedColor: 'rgba(255,255,255,0.72)',
+    textColor: 'rgba(255,255,255,0.9)',
+    mutedColor: 'rgba(255,255,255,0.7)',
     accentColor: '#38bdf8',
-    priceGradientStart: '#fbbf24',
-    priceGradientEnd: '#f59e0b',
+    priceGradientStart: '#fde68a',
+    priceGradientEnd: '#fbbf24',
     priceText: '#1c1917',
-    chipBg: 'rgba(56,189,248,0.18)',
+    chipBg: 'rgba(56,189,248,0.2)',
     chipText: '#e0f2fe',
     saleBadge: '#1e40af',
     rentBadge: '#0e7490',
@@ -111,15 +131,15 @@ const PALETTES: Record<BannerPaletteId, Palette> = {
   },
   emerald: {
     panelBg: '#064e3b',
-    panelBgSoft: 'rgba(6,78,59,0.93)',
+    panelBgSoft: 'rgba(6,78,59,0.9)',
     titleColor: '#ffffff',
-    textColor: 'rgba(255,255,255,0.93)',
-    mutedColor: 'rgba(255,255,255,0.75)',
+    textColor: 'rgba(255,255,255,0.92)',
+    mutedColor: 'rgba(255,255,255,0.72)',
     accentColor: '#34d399',
-    priceGradientStart: '#6ee7b7',
+    priceGradientStart: '#a7f3d0',
     priceGradientEnd: '#34d399',
     priceText: '#064e3b',
-    chipBg: 'rgba(52,211,153,0.2)',
+    chipBg: 'rgba(52,211,153,0.22)',
     chipText: '#d1fae5',
     saleBadge: '#047857',
     rentBadge: '#0d9488',
@@ -128,15 +148,15 @@ const PALETTES: Record<BannerPaletteId, Palette> = {
   },
   gold: {
     panelBg: '#1c1917',
-    panelBgSoft: 'rgba(28,25,23,0.94)',
+    panelBgSoft: 'rgba(28,25,23,0.92)',
     titleColor: '#fef3c7',
-    textColor: 'rgba(254,243,199,0.9)',
-    mutedColor: 'rgba(254,243,199,0.65)',
+    textColor: 'rgba(254,243,199,0.88)',
+    mutedColor: 'rgba(254,243,199,0.62)',
     accentColor: '#fbbf24',
-    priceGradientStart: '#fde68a',
+    priceGradientStart: '#fef3c7',
     priceGradientEnd: '#fbbf24',
     priceText: '#1c1917',
-    chipBg: 'rgba(251,191,36,0.15)',
+    chipBg: 'rgba(251,191,36,0.18)',
     chipText: '#fef3c7',
     saleBadge: '#78350f',
     rentBadge: '#57534e',
@@ -145,15 +165,15 @@ const PALETTES: Record<BannerPaletteId, Palette> = {
   },
   slate: {
     panelBg: '#1f2937',
-    panelBgSoft: 'rgba(31,41,55,0.93)',
+    panelBgSoft: 'rgba(31,41,55,0.9)',
     titleColor: '#f9fafb',
-    textColor: 'rgba(249,250,251,0.92)',
-    mutedColor: 'rgba(209,213,219,0.8)',
+    textColor: 'rgba(249,250,251,0.9)',
+    mutedColor: 'rgba(209,213,219,0.78)',
     accentColor: '#93c5fd',
-    priceGradientStart: '#dbeafe',
+    priceGradientStart: '#eff6ff',
     priceGradientEnd: '#93c5fd',
     priceText: '#1e3a8a',
-    chipBg: 'rgba(147,197,253,0.15)',
+    chipBg: 'rgba(147,197,253,0.18)',
     chipText: '#eff6ff',
     saleBadge: '#374151',
     rentBadge: '#4b5563',
@@ -162,15 +182,15 @@ const PALETTES: Record<BannerPaletteId, Palette> = {
   },
   ocean: {
     panelBg: '#0c4a6e',
-    panelBgSoft: 'rgba(12,74,110,0.93)',
+    panelBgSoft: 'rgba(12,74,110,0.9)',
     titleColor: '#ffffff',
-    textColor: 'rgba(255,255,255,0.93)',
-    mutedColor: 'rgba(186,230,253,0.85)',
+    textColor: 'rgba(255,255,255,0.92)',
+    mutedColor: 'rgba(186,230,253,0.82)',
     accentColor: '#22d3ee',
-    priceGradientStart: '#a5f3fc',
+    priceGradientStart: '#cffafe',
     priceGradientEnd: '#22d3ee',
     priceText: '#0c4a6e',
-    chipBg: 'rgba(34,211,238,0.18)',
+    chipBg: 'rgba(34,211,238,0.2)',
     chipText: '#ecfeff',
     saleBadge: '#0369a1',
     rentBadge: '#0891b2',
@@ -178,6 +198,17 @@ const PALETTES: Record<BannerPaletteId, Palette> = {
     promoText: '#0c4a6e',
   },
 }
+
+type RenderContext = {
+  photos: HTMLImageElement[]
+  property: Property
+  site: SiteConfig
+  logo: HTMLImageElement | null
+  palette: Palette
+  customization: BannerCustomization
+}
+
+// ─── Utilitários de imagem ───────────────────────────────────────────────────
 
 function loadImageElement(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -189,9 +220,7 @@ function loadImageElement(src: string): Promise<HTMLImageElement> {
 }
 
 async function loadImage(url: string): Promise<HTMLImageElement> {
-  if (url.startsWith('data:') || url.startsWith('blob:')) {
-    return loadImageElement(url)
-  }
+  if (url.startsWith('data:') || url.startsWith('blob:')) return loadImageElement(url)
   try {
     const response = await fetch(url, { mode: 'cors', credentials: 'omit', cache: 'no-store' })
     if (!response.ok) throw new Error('fetch failed')
@@ -238,23 +267,6 @@ function drawCoverImage(
   ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h)
 }
 
-function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
-  const words = text.split(/\s+/)
-  const lines: string[] = []
-  let line = ''
-  for (const word of words) {
-    const test = line ? `${line} ${word}` : word
-    if (ctx.measureText(test).width > maxWidth && line) {
-      lines.push(line)
-      line = word
-    } else {
-      line = test
-    }
-  }
-  if (line) lines.push(line)
-  return lines
-}
-
 function roundRect(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -272,6 +284,25 @@ function roundRect(
   ctx.closePath()
 }
 
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const words = text.split(/\s+/)
+  const lines: string[] = []
+  let line = ''
+  for (const word of words) {
+    const test = line ? `${line} ${word}` : word
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lines.push(line)
+      line = word
+    } else {
+      line = test
+    }
+  }
+  if (line) lines.push(line)
+  return lines
+}
+
+// ─── Conteúdo do imóvel ──────────────────────────────────────────────────────
+
 function hasPriceDrop(property: Property): boolean {
   return Boolean(
     property.previousPriceValue &&
@@ -287,24 +318,67 @@ function getHighlightLabel(property: Property): string | null {
   return null
 }
 
-function extractFeatures(property: Property): string[] {
-  const fromDesc = (property.description || '')
-    .split(/[✔✓•\n|]/)
-    .map((s) => s.replace(/^[🏡\s]+/, '').trim())
-    .filter((s) => s.length > 2 && s.length < 42)
+function getCleanDescription(property: Property, maxLen = 320): string {
+  let text = (property.description || '')
+    .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+    .replace(/[✔✓•|]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
 
-  if (fromDesc.length >= 2) return fromDesc.slice(0, 6)
+  if (!text) {
+    text = `Excelente ${property.category || 'imóvel'} em ${property.location}, ${property.city}. Entre em contato para agendar sua visita.`
+  }
+
+  if (text.length > maxLen) {
+    const cut = text.slice(0, maxLen)
+    const lastSpace = cut.lastIndexOf(' ')
+    text = (lastSpace > 80 ? cut.slice(0, lastSpace) : cut).trim() + '…'
+  }
+  return text
+}
+
+function getBulletPoints(property: Property): string[] {
+  const titleLower = property.title.toLowerCase()
+
+  if (property.amenities?.length) {
+    return property.amenities
+      .filter((a) => a.trim().length > 1)
+      .slice(0, 5)
+  }
+
+  const fromDesc = (property.description || '')
+    .split(/[✔✓•\n]/)
+    .map((s) => s.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').trim())
+    .filter((s) => {
+      if (s.length < 3 || s.length > 40) return false
+      if (s.toLowerCase().includes(titleLower.slice(0, 12))) return false
+      if (/são paulo|vila|bairro/i.test(s) && s.length < 15) return false
+      return true
+    })
+
+  if (fromDesc.length >= 2) return fromDesc.slice(0, 5)
 
   const specs: string[] = []
   if (property.bedrooms > 0) specs.push(`${property.bedrooms} quartos`)
   if (property.bathrooms > 0) specs.push(`${property.bathrooms} banheiros`)
   if (property.area > 0) specs.push(`${property.area} m²`)
   if (property.parking > 0) specs.push(`${property.parking} vagas`)
-  if (property.category) specs.push(property.category)
-  return specs.slice(0, 6)
+  return specs.slice(0, 5)
 }
 
-function drawPhotoGrid(
+function getSpecsLine(property: Property): string {
+  const parts: string[] = []
+  if (property.bedrooms > 0) parts.push(`${property.bedrooms} quartos`)
+  parts.push(`${property.bathrooms} banh.`)
+  parts.push(`${property.area}m²`)
+  if (property.parking > 0) parts.push(`${property.parking} vagas`)
+  return parts.join('  •  ')
+}
+
+// ─── Layouts de foto ─────────────────────────────────────────────────────────
+
+/** Foto principal grande + miniaturas na base */
+function drawHeroWithFilmstrip(
   ctx: CanvasRenderingContext2D,
   photos: HTMLImageElement[],
   x: number,
@@ -312,119 +386,109 @@ function drawPhotoGrid(
   w: number,
   h: number,
 ) {
-  const gap = 5
-  const n = Math.min(photos.length, MAX_BANNER_PHOTOS)
-  if (n === 0) return
-
-  ctx.save()
-  ctx.beginPath()
-  ctx.rect(x, y, w, h)
-  ctx.clip()
-
-  if (n === 1) {
+  const gap = 6
+  if (photos.length === 1) {
     drawCoverImage(ctx, photos[0], x, y, w, h)
-    ctx.restore()
     return
   }
 
-  if (n === 2) {
-    const half = (w - gap) / 2
-    drawCoverImage(ctx, photos[0], x, y, half, h)
-    drawCoverImage(ctx, photos[1], x + half + gap, y, half, h)
-    ctx.restore()
-    return
-  }
+  const stripH = Math.min(h * 0.18, 120)
+  const mainH = h - stripH - gap
+  drawCoverImage(ctx, photos[0], x, y, w, mainH)
 
-  if (n === 3) {
-    const mainW = w * 0.62 - gap / 2
-    drawCoverImage(ctx, photos[0], x, y, mainW, h)
-    const sideW = w - mainW - gap
-    const halfH = (h - gap) / 2
-    drawCoverImage(ctx, photos[1], x + mainW + gap, y, sideW, halfH)
-    drawCoverImage(ctx, photos[2], x + mainW + gap, y + halfH + gap, sideW, halfH)
-    ctx.restore()
-    return
-  }
-
-  if (n === 4) {
-    const cw = (w - gap) / 2
-    const ch = (h - gap) / 2
-    drawCoverImage(ctx, photos[0], x, y, cw, ch)
-    drawCoverImage(ctx, photos[1], x + cw + gap, y, cw, ch)
-    drawCoverImage(ctx, photos[2], x, y + ch + gap, cw, ch)
-    drawCoverImage(ctx, photos[3], x + cw + gap, y + ch + gap, cw, ch)
-    ctx.restore()
-    return
-  }
-
-  const row1H = h * 0.58 - gap / 2
-  const row2H = h - row1H - gap
-  const w3 = (w - gap * 2) / 3
-  drawCoverImage(ctx, photos[0], x, y, w3, row1H)
-  drawCoverImage(ctx, photos[1], x + w3 + gap, y, w3, row1H)
-  drawCoverImage(ctx, photos[2], x + (w3 + gap) * 2, y, w3, row1H)
-  const w2 = (w - gap) / 2
-  drawCoverImage(ctx, photos[3], x, y + row1H + gap, w2, row2H)
-  drawCoverImage(ctx, photos[4], x + w2 + gap, y + row1H + gap, w2, row2H)
-  ctx.restore()
+  const extras = photos.slice(1, 5)
+  const thumbW = (w - gap * (extras.length - 1)) / extras.length
+  extras.forEach((img, i) => {
+    drawCoverImage(ctx, img, x + i * (thumbW + gap), y + mainH + gap, thumbW, stripH)
+  })
 }
 
-function measureLogo(logo: HTMLImageElement | null, site: SiteConfig, maxH: number) {
-  if (logo) {
-    const h = maxH
-    const w = (logo.width / logo.height) * h
-    return { w, h }
-  }
-  const name = site.shortName || site.name
-  return { w: name.length * 14, h: maxH }
-}
-
-function drawLogoInBox(
+/** Uma foto em tela cheia na área */
+function drawSingleHero(
   ctx: CanvasRenderingContext2D,
-  logo: HTMLImageElement | null,
-  site: SiteConfig,
+  photos: HTMLImageElement[],
   x: number,
   y: number,
-  maxH: number,
-  textColor: string,
+  w: number,
+  h: number,
 ) {
-  if (logo) {
-    const h = maxH
-    const w = (logo.width / logo.height) * h
-    ctx.drawImage(logo, x, y, w, h)
-    return w
-  }
-  ctx.fillStyle = textColor
-  ctx.font = 'bold 24px Inter, Arial, sans-serif'
-  const name = site.shortName || site.name
-  ctx.fillText(name, x, y + maxH * 0.78)
-  return ctx.measureText(name).width
+  drawCoverImage(ctx, photos[0], x, y, w, h)
 }
 
-function drawCornerBadge(
+/** Duas fotos grandes lado a lado */
+function drawDualHero(
   ctx: CanvasRenderingContext2D,
-  text: string,
-  corner: BannerCorner,
-  bg: string,
-  color: string,
-  pad = 28,
+  photos: HTMLImageElement[],
+  x: number,
+  y: number,
+  w: number,
+  h: number,
 ) {
-  ctx.font = 'bold 20px Inter, Arial, sans-serif'
-  const padX = 20
-  const tw = ctx.measureText(text).width
-  const bw = tw + padX * 2
-  const bh = 40
-  const x = corner === 'top-left' ? pad : W - pad - bw
-  const y = pad
-
-  ctx.fillStyle = bg
-  roundRect(ctx, x, y, bw, bh, 10)
-  ctx.fill()
-  ctx.fillStyle = color
-  ctx.textBaseline = 'middle'
-  ctx.fillText(text, x + padX, y + bh / 2)
-  ctx.textBaseline = 'alphabetic'
+  const gap = 8
+  const half = (w - gap) / 2
+  drawCoverImage(ctx, photos[0], x, y, half, h)
+  drawCoverImage(ctx, photos[1] ?? photos[0], x + half + gap, y, half, h)
 }
+
+/** Mosaico assimétrico: hero 68% à esquerda, coluna de fotos à direita */
+function drawAsymmetricMosaic(
+  ctx: CanvasRenderingContext2D,
+  photos: HTMLImageElement[],
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+) {
+  const gap = 6
+  if (photos.length === 1) {
+    drawCoverImage(ctx, photos[0], x, y, w, h)
+    return
+  }
+
+  const mainW = w * 0.68 - gap / 2
+  drawCoverImage(ctx, photos[0], x, y, mainW, h)
+
+  const colX = x + mainW + gap
+  const colW = w - mainW - gap
+  const extras = photos.slice(1, 4)
+
+  if (extras.length === 1) {
+    drawCoverImage(ctx, extras[0], colX, y, colW, h)
+    return
+  }
+
+  const cellH = (h - gap * (extras.length - 1)) / extras.length
+  extras.forEach((img, i) => {
+    drawCoverImage(ctx, img, colX, y + i * (cellH + gap), colW, cellH)
+  })
+}
+
+/** Faixa horizontal de fotos no rodapé */
+function drawBottomFilmstrip(
+  ctx: CanvasRenderingContext2D,
+  photos: HTMLImageElement[],
+  y: number,
+  h: number,
+) {
+  if (photos.length <= 1) return
+  const extras = photos.slice(1, 5)
+  const gap = 6
+  const pad = 28
+  const thumbW = (W - pad * 2 - gap * (extras.length - 1)) / extras.length
+  extras.forEach((img, i) => {
+    const tx = pad + i * (thumbW + gap)
+    ctx.fillStyle = 'rgba(255,255,255,0.15)'
+    roundRect(ctx, tx - 2, y - 2, thumbW + 4, h + 4, 6)
+    ctx.fill()
+    ctx.save()
+    roundRect(ctx, tx, y, thumbW, h, 4)
+    ctx.clip()
+    drawCoverImage(ctx, img, tx, y, thumbW, h)
+    ctx.restore()
+  })
+}
+
+// ─── Elementos visuais ───────────────────────────────────────────────────────
 
 function drawTopBranding(
   ctx: CanvasRenderingContext2D,
@@ -434,91 +498,125 @@ function drawTopBranding(
   palette: Palette,
   customization: BannerCustomization,
 ) {
-  const pad = 28
-  const logoH = 48
-  const { w: logoW } = measureLogo(logo, site, logoH)
-  const logoPadX = 16
-  const logoPadY = 10
-  const boxW = logoW + logoPadX * 2
-  const boxH = logoH + logoPadY * 2
+  const pad = 24
+  const logoH = 52
+  const logoW = logo ? (logo.width / logo.height) * logoH : (site.shortName || site.name).length * 13
+  const boxW = logoW + 32
+  const boxH = logoH + 20
 
   const logoX = customization.logoPosition === 'top-left' ? pad : W - pad - boxW
   const logoY = pad
 
-  ctx.fillStyle = 'rgba(255,255,255,0.96)'
-  ctx.shadowColor = 'rgba(0,0,0,0.2)'
-  ctx.shadowBlur = 12
+  ctx.fillStyle = 'rgba(255,255,255,0.97)'
+  ctx.shadowColor = 'rgba(0,0,0,0.25)'
+  ctx.shadowBlur = 16
   ctx.shadowOffsetY = 4
   roundRect(ctx, logoX, logoY, boxW, boxH, 12)
   ctx.fill()
   ctx.shadowColor = 'transparent'
   ctx.shadowBlur = 0
-  ctx.shadowOffsetY = 0
 
-  drawLogoInBox(ctx, logo, site, logoX + logoPadX, logoY + logoPadY, logoH, '#1e3a8a')
+  if (logo) {
+    ctx.drawImage(logo, logoX + 16, logoY + 10, logoW, logoH)
+  } else {
+    ctx.fillStyle = '#1e3a8a'
+    ctx.font = 'bold 22px Inter, Arial, sans-serif'
+    ctx.fillText(site.shortName || site.name, logoX + 16, logoY + 38)
+  }
 
   const typeText = property.type.toUpperCase()
   const typeBg = property.type === 'Venda' ? palette.saleBadge : palette.rentBadge
-  drawCornerBadge(ctx, typeText, customization.typePosition, typeBg, '#ffffff', pad)
+  ctx.font = 'bold 19px Inter, Arial, sans-serif'
+  const padX = 18
+  const tw = ctx.measureText(typeText).width
+  const bw = tw + padX * 2
+  const bh = 42
+  const bx = customization.typePosition === 'top-left' ? pad : W - pad - bw
+  const by = pad
+
+  ctx.fillStyle = typeBg
+  roundRect(ctx, bx, by, bw, bh, 10)
+  ctx.fill()
+  ctx.fillStyle = '#ffffff'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(typeText, bx + padX, by + bh / 2)
+  ctx.textBaseline = 'alphabetic'
 
   const highlight = getHighlightLabel(property)
   if (highlight) {
     const label = highlight.toUpperCase()
     const promoCorner: BannerCorner =
       customization.typePosition === 'top-right' ? 'top-left' : 'top-right'
-    const offsetY = boxH + 14
-    ctx.font = 'bold 18px Inter, Arial, sans-serif'
-    const padX = 16
-    const tw = ctx.measureText(label).width
-    const bw = tw + padX * 2
-    const bh = 34
-    const bx =
-      promoCorner === 'top-left'
-        ? pad
-        : W - pad - bw
-    const by = pad + offsetY
+    ctx.font = 'bold 16px Inter, Arial, sans-serif'
+    const ptw = ctx.measureText(label).width
+    const pbw = ptw + 28
+    const pbh = 32
+    const pbx = promoCorner === 'top-left' ? pad : W - pad - pbw
+    const pby = pad + boxH + 10
     ctx.fillStyle = palette.promoBadge
-    roundRect(ctx, bx, by, bw, bh, 8)
+    roundRect(ctx, pbx, pby, pbw, pbh, 8)
     ctx.fill()
     ctx.fillStyle = palette.promoText
     ctx.textBaseline = 'middle'
-    ctx.fillText(label, bx + padX, by + bh / 2)
+    ctx.fillText(label, pbx + 14, pby + pbh / 2)
     ctx.textBaseline = 'alphabetic'
   }
 }
 
-function drawFeatureChips(
+function drawDescription(
   ctx: CanvasRenderingContext2D,
-  features: string[],
+  property: Property,
   x: number,
   y: number,
-  w: number,
+  maxW: number,
+  color: string,
+  maxLines: number,
+  fontSize = 17,
+  lineHeight = 26,
+): number {
+  const desc = getCleanDescription(property)
+  ctx.fillStyle = color
+  ctx.font = `${fontSize}px Inter, Arial, sans-serif`
+  const lines = wrapText(ctx, desc, maxW).slice(0, maxLines)
+  lines.forEach((line, i) => {
+    ctx.fillText(line, x, y + i * lineHeight)
+  })
+  return lines.length * lineHeight
+}
+
+function drawBulletsRow(
+  ctx: CanvasRenderingContext2D,
+  bullets: string[],
+  x: number,
+  y: number,
+  maxW: number,
   palette: Palette,
 ): number {
-  const chipH = 34
+  if (bullets.length === 0) return 0
   const gap = 8
-  const colW = (w - gap) / 2
-  let maxY = y
+  let cx = x
+  let cy = y
+  const maxH = 30
 
-  features.forEach((feat, i) => {
-    const col = i % 2
-    const row = Math.floor(i / 2)
-    const cx = x + col * (colW + gap)
-    const cy = y + row * (chipH + gap)
-
-    ctx.font = '600 16px Inter, Arial, sans-serif'
+  ctx.font = '600 15px Inter, Arial, sans-serif'
+  bullets.forEach((bullet) => {
+    const text = bullet.length > 22 ? `${bullet.slice(0, 20)}…` : bullet
+    const tw = ctx.measureText(text).width + 20
+    if (cx + tw > x + maxW && cx > x) {
+      cx = x
+      cy += maxH + gap
+    }
     ctx.fillStyle = palette.chipBg
-    roundRect(ctx, cx, cy, colW, chipH, 8)
+    roundRect(ctx, cx, cy, tw, maxH, 15)
     ctx.fill()
     ctx.fillStyle = palette.chipText
     ctx.textBaseline = 'middle'
-    const display = feat.length > 28 ? `${feat.slice(0, 26)}…` : feat
-    ctx.fillText(display, cx + 12, cy + chipH / 2)
+    ctx.fillText(text, cx + 10, cy + maxH / 2)
     ctx.textBaseline = 'alphabetic'
-    maxY = Math.max(maxY, cy + chipH)
+    cx += tw + gap
   })
 
-  return maxY - y + (features.length > 0 ? 0 : 0)
+  return cy + maxH - y
 }
 
 function drawPriceBlock(
@@ -528,267 +626,371 @@ function drawPriceBlock(
   x: number,
   y: number,
   w: number,
+  compact = false,
 ): number {
-  const blockH = hasPriceDrop(property) ? 118 : 88
+  const blockH = compact ? (hasPriceDrop(property) ? 96 : 76) : hasPriceDrop(property) ? 110 : 86
   const grad = ctx.createLinearGradient(x, y, x + w, y + blockH)
   grad.addColorStop(0, palette.priceGradientStart)
   grad.addColorStop(1, palette.priceGradientEnd)
 
   ctx.fillStyle = grad
-  roundRect(ctx, x, y, w, blockH, 14)
+  roundRect(ctx, x, y, w, blockH, compact ? 12 : 14)
   ctx.fill()
 
-  ctx.strokeStyle = 'rgba(255,255,255,0.35)'
-  ctx.lineWidth = 1
-  roundRect(ctx, x, y, w, blockH, 14)
-  ctx.stroke()
-
-  const innerX = x + 22
-  let innerY = y + 28
+  const innerX = x + (compact ? 16 : 20)
+  let labelY = y + (compact ? 22 : 26)
 
   if (hasPriceDrop(property)) {
     const oldPrice = formatPropertyPrice(property.previousPriceValue!, property.type)
-    ctx.fillStyle = 'rgba(0,0,0,0.45)'
-    ctx.font = '18px Inter, Arial, sans-serif'
-    const oldText = `Antes: ${oldPrice}`
-    ctx.fillText(oldText, innerX, innerY)
-    const oldW = ctx.measureText(oldText).width
-    ctx.strokeStyle = 'rgba(0,0,0,0.5)'
+    ctx.fillStyle = 'rgba(0,0,0,0.4)'
+    ctx.font = '15px Inter, Arial, sans-serif'
+    ctx.fillText(`De ${oldPrice}`, innerX, labelY)
+    const ow = ctx.measureText(`De ${oldPrice}`).width
+    ctx.strokeStyle = 'rgba(0,0,0,0.55)'
     ctx.lineWidth = 2
     ctx.beginPath()
-    ctx.moveTo(innerX, innerY - 5)
-    ctx.lineTo(innerX + oldW, innerY - 5)
+    ctx.moveTo(innerX, labelY - 4)
+    ctx.lineTo(innerX + ow, labelY - 4)
     ctx.stroke()
-    innerY += 22
-    ctx.fillStyle = palette.priceText
-    ctx.font = 'bold 16px Inter, Arial, sans-serif'
-    ctx.fillText('Valor especial', innerX, innerY)
-    innerY += 10
-  } else {
-    ctx.fillStyle = palette.priceText
-    ctx.font = '600 16px Inter, Arial, sans-serif'
-    ctx.fillText(property.type === 'Venda' ? 'Investimento' : 'Valor mensal', innerX, innerY - 4)
+    labelY += 18
   }
 
   ctx.fillStyle = palette.priceText
-  ctx.font = 'bold 42px Inter, Arial, sans-serif'
-  ctx.fillText(property.price, innerX, y + blockH - 22)
+  ctx.font = '600 14px Inter, Arial, sans-serif'
+  ctx.fillText(property.type === 'Venda' ? 'Investimento' : 'Valor mensal', innerX, labelY)
+
+  ctx.font = `bold ${compact ? 34 : 38}px Inter, Arial, sans-serif`
+  ctx.fillText(property.price, innerX, y + blockH - (compact ? 14 : 16))
 
   return blockH
 }
 
-function drawInfoPanel(
+function drawFooter(
   ctx: CanvasRenderingContext2D,
-  property: Property,
   site: SiteConfig,
   palette: Palette,
   x: number,
   y: number,
-  w: number,
-  h: number,
+  light = true,
 ) {
-  const grad = ctx.createLinearGradient(x, y - 80, x, y + h)
-  grad.addColorStop(0, 'rgba(0,0,0,0)')
-  grad.addColorStop(0.15, palette.panelBgSoft)
-  grad.addColorStop(1, palette.panelBg)
-  ctx.fillStyle = grad
-  ctx.fillRect(x, y - 40, w, h + 40)
-
-  ctx.fillStyle = palette.panelBg
-  ctx.fillRect(x, y + h * 0.08, w, h * 0.92)
-
-  const pad = 36
-  const innerW = w - pad * 2
-  let cursorY = y + pad
-
-  ctx.fillStyle = palette.titleColor
-  ctx.font = 'bold 36px Inter, Arial, sans-serif'
-  const titleLines = wrapText(ctx, property.title, innerW)
-  titleLines.slice(0, 2).forEach((line) => {
-    ctx.fillText(line, x + pad, cursorY)
-    cursorY += 42
-  })
-
-  cursorY += 4
-  ctx.fillStyle = palette.mutedColor
-  ctx.font = '20px Inter, Arial, sans-serif'
-  ctx.fillText(`${property.location} • ${property.city}`, x + pad, cursorY)
-  cursorY += 32
-
-  const features = extractFeatures(property)
-  if (features.length > 0) {
-    const chipsH = drawFeatureChips(ctx, features, x + pad, cursorY, innerW, palette)
-    cursorY += chipsH + 20
-  }
-
-  const priceH = drawPriceBlock(ctx, property, palette, x + pad, cursorY, innerW)
-  cursorY += priceH + 16
-
-  const specs: string[] = []
-  if (property.bedrooms > 0) specs.push(`${property.bedrooms} quartos`)
-  specs.push(`${property.bathrooms} banh.`)
-  specs.push(`${property.area}m²`)
-  if (property.parking > 0) specs.push(`${property.parking} vagas`)
-
-  ctx.fillStyle = palette.mutedColor
-  ctx.font = '17px Inter, Arial, sans-serif'
-  ctx.fillText(specs.join('   •   '), x + pad, cursorY + 8)
-
-  const footerY = y + h - pad
-  ctx.fillStyle = palette.titleColor
-  ctx.font = 'bold 19px Inter, Arial, sans-serif'
   const phone = site.phones[0] ?? ''
-  ctx.fillText(`${site.shortName || site.name}  •  CRECI ${site.creci}`, x + pad, footerY - 14)
+  ctx.fillStyle = light ? palette.titleColor : palette.mutedColor
+  ctx.font = 'bold 17px Inter, Arial, sans-serif'
+  ctx.fillText(`${site.shortName || site.name}  •  CRECI ${site.creci}`, x, y)
   if (phone) {
     ctx.fillStyle = palette.accentColor
-    ctx.font = 'bold 18px Inter, Arial, sans-serif'
-    ctx.fillText(phone, x + pad, footerY + 12)
+    ctx.font = 'bold 17px Inter, Arial, sans-serif'
+    ctx.fillText(phone, x, y + 22)
   }
 }
 
-type RenderContext = {
-  photos: HTMLImageElement[]
-  property: Property
-  site: SiteConfig
-  logo: HTMLImageElement | null
-  palette: Palette
-  customization: BannerCustomization
-}
+// ─── 5 layouts distintos ─────────────────────────────────────────────────────
 
+/** DESTAQUE: hero 72% + painel inferior com descrição */
 async function renderClassic(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  const photoH = H * 0.54
-  drawPhotoGrid(ctx, input.photos, 0, 0, W, photoH)
-  drawTopBranding(
-    ctx,
-    input.logo,
-    input.site,
-    input.property,
-    input.palette,
-    input.customization,
-  )
-  drawInfoPanel(ctx, input.property, input.site, input.palette, 0, photoH - 20, W, H - photoH + 20)
-}
+  const photoH = H * 0.72
+  drawHeroWithFilmstrip(ctx, input.photos, 0, 0, W, photoH)
+  drawTopBranding(ctx, input.logo, input.site, input.property, input.palette, input.customization)
 
-async function renderModern(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  const split = W * 0.5
-  drawPhotoGrid(ctx, input.photos, 0, 0, split - 4, H)
-  ctx.fillStyle = input.palette.accentColor
-  ctx.fillRect(split - 4, 0, 8, H)
-  drawTopBranding(
-    ctx,
-    input.logo,
-    input.site,
-    input.property,
-    input.palette,
-    input.customization,
-  )
-  ctx.fillStyle = '#ffffff'
-  ctx.fillRect(split + 4, 0, W - split - 4, H)
-  drawInfoPanel(
-    ctx,
-    input.property,
-    input.site,
-    {
-      ...input.palette,
-      panelBg: '#ffffff',
-      panelBgSoft: 'rgba(255,255,255,0.98)',
-      titleColor: '#111827',
-      textColor: '#374151',
-      mutedColor: '#6b7280',
-      chipBg: 'rgba(30,64,175,0.08)',
-      chipText: '#1e3a8a',
-    },
-    split + 4,
-    80,
-    W - split - 4,
-    H - 80,
-  )
-}
+  const panelY = photoH - 2
+  const panelH = H - panelY
+  const p = input.palette
 
-async function renderBold(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  drawPhotoGrid(ctx, input.photos, 0, 0, W, H)
-  const grad = ctx.createLinearGradient(0, H * 0.25, 0, H)
+  const grad = ctx.createLinearGradient(0, panelY - 60, 0, H)
   grad.addColorStop(0, 'rgba(0,0,0,0)')
-  grad.addColorStop(0.45, 'rgba(0,0,0,0.35)')
+  grad.addColorStop(0.2, p.panelBgSoft)
+  grad.addColorStop(1, p.panelBg)
+  ctx.fillStyle = grad
+  ctx.fillRect(0, panelY - 60, W, panelH + 60)
+  ctx.fillStyle = p.panelBg
+  ctx.fillRect(0, panelY + 20, W, panelH - 20)
+
+  const pad = 32
+  let cy = panelY + 36
+
+  ctx.fillStyle = p.titleColor
+  ctx.font = 'bold 34px Inter, Arial, sans-serif'
+  const titleLines = wrapText(ctx, input.property.title, W - pad * 2 - 280)
+  titleLines.slice(0, 1).forEach((line) => {
+    ctx.fillText(line, pad, cy)
+    cy += 40
+  })
+
+  ctx.fillStyle = p.mutedColor
+  ctx.font = '18px Inter, Arial, sans-serif'
+  ctx.fillText(`${input.property.location} • ${input.property.city}`, pad, cy)
+  cy += 28
+
+  const descH = drawDescription(ctx, input.property, pad, cy, W - pad * 2 - 290, p.textColor, 3, 16, 24)
+  cy += descH + 10
+
+  const bulletsH = drawBulletsRow(ctx, getBulletPoints(input.property), pad, cy, W - 320, p)
+  cy += bulletsH + 8
+
+  ctx.fillStyle = p.mutedColor
+  ctx.font = '15px Inter, Arial, sans-serif'
+  ctx.fillText(getSpecsLine(input.property), pad, cy + 10)
+
+  const priceX = W - pad - 260
+  const priceY = panelY + 36
+  drawPriceBlock(ctx, input.property, p, priceX, priceY, 260, true)
+  drawFooter(ctx, input.site, p, priceX, priceY + 130)
+}
+
+/** EDITORIAL: foto grande à esquerda (62%), painel texto à direita */
+async function renderModern(ctx: CanvasRenderingContext2D, input: RenderContext) {
+  const split = Math.round(W * 0.62)
+  drawSingleHero(ctx, input.photos, 0, 0, split, H)
+
+  if (input.photos.length > 1) {
+    drawBottomFilmstrip(ctx, input.photos, H - 100, 72)
+  }
+
+  drawTopBranding(ctx, input.logo, input.site, input.property, input.palette, input.customization)
+
+  const panelX = split
+  const panelW = W - split
+  const p = input.palette
+
+  ctx.fillStyle = p.panelBg
+  ctx.fillRect(panelX, 0, panelW, H)
+
+  ctx.fillStyle = p.accentColor
+  ctx.fillRect(panelX, 0, 5, H)
+
+  const pad = 28
+  const innerW = panelW - pad * 2
+  let cy = 100
+
+  ctx.fillStyle = p.titleColor
+  ctx.font = 'bold 30px Inter, Arial, sans-serif'
+  wrapText(ctx, input.property.title, innerW)
+    .slice(0, 2)
+    .forEach((line) => {
+      ctx.fillText(line, panelX + pad, cy)
+      cy += 36
+    })
+
+  cy += 4
+  ctx.fillStyle = p.mutedColor
+  ctx.font = '17px Inter, Arial, sans-serif'
+  ctx.fillText(`${input.property.location} • ${input.property.city}`, panelX + pad, cy)
+  cy += 30
+
+  ctx.fillStyle = p.accentColor
+  ctx.font = 'bold 13px Inter, Arial, sans-serif'
+  ctx.fillText('SOBRE O IMÓVEL', panelX + pad, cy)
+  cy += 22
+
+  const descH = drawDescription(ctx, input.property, panelX + pad, cy, innerW, p.textColor, 5, 15, 23)
+  cy += descH + 16
+
+  const bulletsH = drawBulletsRow(ctx, getBulletPoints(input.property), panelX + pad, cy, innerW, p)
+  cy += bulletsH + 16
+
+  ctx.fillStyle = p.mutedColor
+  ctx.font = '14px Inter, Arial, sans-serif'
+  ctx.fillText(getSpecsLine(input.property), panelX + pad, cy)
+  cy += 28
+
+  drawPriceBlock(ctx, input.property, p, panelX + pad, cy, innerW)
+  cy += 100
+
+  drawFooter(ctx, input.site, p, panelX + pad, cy)
+}
+
+/** CINEMATOGRÁFICO: foto full bleed + overlay gradiente + texto */
+async function renderBold(ctx: CanvasRenderingContext2D, input: RenderContext) {
+  drawSingleHero(ctx, input.photos, 0, 0, W, H)
+
+  const grad = ctx.createLinearGradient(0, 0, 0, H)
+  grad.addColorStop(0, 'rgba(0,0,0,0.15)')
+  grad.addColorStop(0.4, 'rgba(0,0,0,0.05)')
+  grad.addColorStop(0.55, 'rgba(0,0,0,0.45)')
   grad.addColorStop(1, input.palette.panelBgSoft)
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, W, H)
-  drawTopBranding(
-    ctx,
-    input.logo,
-    input.site,
-    input.property,
-    input.palette,
-    input.customization,
-  )
-  drawInfoPanel(ctx, input.property, input.site, input.palette, 0, H * 0.38, W, H * 0.62)
+
+  drawTopBranding(ctx, input.logo, input.site, input.property, input.palette, input.customization)
+
+  if (input.photos.length > 1) {
+    drawBottomFilmstrip(ctx, input.photos, H - 88, 60)
+  }
+
+  const p = input.palette
+  const pad = 40
+  const contentY = H * 0.52
+  let cy = contentY
+
+  ctx.fillStyle = p.titleColor
+  ctx.font = 'bold 40px Inter, Arial, sans-serif'
+  wrapText(ctx, input.property.title, W - pad * 2)
+    .slice(0, 2)
+    .forEach((line) => {
+      ctx.shadowColor = 'rgba(0,0,0,0.5)'
+      ctx.shadowBlur = 8
+      ctx.fillText(line, pad, cy)
+      cy += 46
+    })
+  ctx.shadowColor = 'transparent'
+  ctx.shadowBlur = 0
+
+  cy += 4
+  ctx.fillStyle = p.mutedColor
+  ctx.font = '19px Inter, Arial, sans-serif'
+  ctx.fillText(`${input.property.location} • ${input.property.city}`, pad, cy)
+  cy += 32
+
+  const descH = drawDescription(ctx, input.property, pad, cy, W - pad * 2, p.textColor, 4, 17, 26)
+  cy += descH + 14
+
+  drawBulletsRow(ctx, getBulletPoints(input.property), pad, cy, W - pad * 2, p)
+
+  const priceW = 300
+  drawPriceBlock(ctx, input.property, p, W - pad - priceW, contentY, priceW, true)
+
+  ctx.fillStyle = p.mutedColor
+  ctx.font = '15px Inter, Arial, sans-serif'
+  ctx.fillText(getSpecsLine(input.property), pad, H - 110)
+
+  drawFooter(ctx, input.site, p, pad, H - 72)
 }
 
+/** GALERIA: duas fotos grandes + duas colunas de texto */
 async function renderMinimal(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  ctx.fillStyle = '#e5e7eb'
-  ctx.fillRect(0, 0, W, H)
-  const pad = 24
+  const photoH = H * 0.58
+  drawDualHero(ctx, input.photos, 0, 0, W, photoH)
+  drawTopBranding(ctx, input.logo, input.site, input.property, input.palette, input.customization)
+
+  const panelY = photoH
+  const panelH = H - photoH
   ctx.fillStyle = '#ffffff'
-  roundRect(ctx, pad, pad, W - pad * 2, H - pad * 2, 24)
-  ctx.fill()
-  const photoH = (H - pad * 2) * 0.5
-  drawPhotoGrid(ctx, input.photos, pad + 12, pad + 12, W - pad * 2 - 24, photoH)
-  drawTopBranding(
+  ctx.fillRect(0, panelY, W, panelH)
+
+  ctx.fillStyle = input.palette.accentColor
+  ctx.fillRect(0, panelY, W, 4)
+
+  const pad = 36
+  const colW = (W - pad * 2 - 24) / 2
+  const leftX = pad
+  const rightX = pad + colW + 24
+  let cy = panelY + 32
+
+  ctx.fillStyle = '#111827'
+  ctx.font = 'bold 32px Inter, Arial, sans-serif'
+  wrapText(ctx, input.property.title, W - pad * 2)
+    .slice(0, 1)
+    .forEach((line) => {
+      ctx.fillText(line, leftX, cy)
+    })
+  cy += 38
+
+  ctx.fillStyle = '#6b7280'
+  ctx.font = '17px Inter, Arial, sans-serif'
+  ctx.fillText(`${input.property.location} • ${input.property.city}`, leftX, cy)
+  cy += 28
+
+  const lightPalette: Palette = {
+    ...input.palette,
+    textColor: '#374151',
+    chipBg: 'rgba(30,64,175,0.08)',
+    chipText: '#1e40af',
+  }
+
+  ctx.fillStyle = '#1e40af'
+  ctx.font = 'bold 12px Inter, Arial, sans-serif'
+  ctx.fillText('DESCRIÇÃO', leftX, cy)
+  cy += 20
+
+  drawDescription(ctx, input.property, leftX, cy, colW, '#4b5563', 4, 15, 22)
+  drawBulletsRow(ctx, getBulletPoints(input.property), leftX, cy + 100, colW, lightPalette)
+
+  const priceY = panelY + 32
+  drawPriceBlock(ctx, input.property, input.palette, rightX, priceY, colW)
+
+  ctx.fillStyle = '#6b7280'
+  ctx.font = '14px Inter, Arial, sans-serif'
+  ctx.fillText(getSpecsLine(input.property), rightX, priceY + 100)
+
+  drawFooter(
     ctx,
-    input.logo,
     input.site,
-    input.property,
-    input.palette,
-    input.customization,
-  )
-  drawInfoPanel(
-    ctx,
-    input.property,
-    input.site,
-    {
-      ...input.palette,
-      panelBg: '#f8fafc',
-      panelBgSoft: 'rgba(248,250,252,0.98)',
-      titleColor: '#111827',
-      textColor: '#374151',
-      mutedColor: '#6b7280',
-      chipBg: 'rgba(30,64,175,0.07)',
-      chipText: '#1e40af',
-    },
-    pad + 12,
-    pad + 12 + photoH + 8,
-    W - pad * 2 - 24,
-    H - pad * 2 - photoH - 20,
+    { ...input.palette, titleColor: '#111827', accentColor: '#1e40af' },
+    rightX,
+    panelY + panelH - 50,
+    false,
   )
 }
 
+/** MOSAICO PREMIUM: composição assimétrica + cartão flutuante */
 async function renderCollage(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  drawPhotoGrid(ctx, input.photos, 0, 0, W, H)
+  drawAsymmetricMosaic(ctx, input.photos, 0, 0, W, H * 0.7)
+
   const grad = ctx.createLinearGradient(0, H * 0.35, 0, H)
   grad.addColorStop(0, 'rgba(0,0,0,0)')
-  grad.addColorStop(0.5, 'rgba(0,0,0,0.4)')
-  grad.addColorStop(1, input.palette.panelBgSoft)
+  grad.addColorStop(0.6, 'rgba(0,0,0,0.35)')
+  grad.addColorStop(1, 'rgba(0,0,0,0.65)')
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, W, H)
-  drawTopBranding(
-    ctx,
-    input.logo,
-    input.site,
-    input.property,
-    input.palette,
-    input.customization,
-  )
-  const cardPad = 28
-  const cardH = H * 0.46
+
+  drawTopBranding(ctx, input.logo, input.site, input.property, input.palette, input.customization)
+
+  const p = input.palette
+  const cardPad = 32
+  const cardH = H * 0.42
   const cardY = H - cardH - cardPad
-  ctx.fillStyle = input.palette.panelBg
-  ctx.shadowColor = 'rgba(0,0,0,0.35)'
-  ctx.shadowBlur = 24
-  roundRect(ctx, cardPad, cardY, W - cardPad * 2, cardH, 20)
+  const cardW = W - cardPad * 2
+
+  ctx.fillStyle = p.panelBg
+  ctx.shadowColor = 'rgba(0,0,0,0.4)'
+  ctx.shadowBlur = 30
+  ctx.shadowOffsetY = 8
+  roundRect(ctx, cardPad, cardY, cardW, cardH, 20)
   ctx.fill()
   ctx.shadowColor = 'transparent'
   ctx.shadowBlur = 0
-  drawInfoPanel(ctx, input.property, input.site, input.palette, cardPad, cardY, W - cardPad * 2, cardH)
+
+  const pad = 36
+  const innerW = cardW - pad * 2
+  let cy = cardY + pad
+
+  ctx.fillStyle = p.titleColor
+  ctx.font = 'bold 32px Inter, Arial, sans-serif'
+  wrapText(ctx, input.property.title, innerW - 270)
+    .slice(0, 1)
+    .forEach((line) => {
+      ctx.fillText(line, cardPad + pad, cy)
+      cy += 38
+    })
+
+  ctx.fillStyle = p.mutedColor
+  ctx.font = '17px Inter, Arial, sans-serif'
+  ctx.fillText(`${input.property.location} • ${input.property.city}`, cardPad + pad, cy)
+  cy += 26
+
+  const descH = drawDescription(
+    ctx,
+    input.property,
+    cardPad + pad,
+    cy,
+    innerW - 280,
+    p.textColor,
+    3,
+    15,
+    22,
+  )
+  cy += descH + 10
+
+  drawBulletsRow(ctx, getBulletPoints(input.property), cardPad + pad, cy, innerW - 280, p)
+
+  const priceX = cardPad + cardW - pad - 250
+  drawPriceBlock(ctx, input.property, p, priceX, cardY + pad, 250, true)
+
+  ctx.fillStyle = p.mutedColor
+  ctx.font = '14px Inter, Arial, sans-serif'
+  ctx.fillText(getSpecsLine(input.property), cardPad + pad, cardY + cardH - pad - 10)
+
+  drawFooter(ctx, input.site, p, cardPad + pad, cardY + cardH - pad + 8)
 }
 
 const RENDERERS: Record<BannerTemplateId, (ctx: CanvasRenderingContext2D, input: RenderContext) => Promise<void>> = {
