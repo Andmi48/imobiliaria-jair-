@@ -117,7 +117,7 @@ function canvasToFile(canvas: HTMLCanvasElement, fileName: string, type: string)
 /** Aplica uma marca d'água discreta no centro da foto (logo ou texto). */
 export async function applyWatermarkToFile(file: File, options: WatermarkOptions = {}): Promise<File> {
   const source = await loadImageFromFile(file)
-  const opacity = options.opacity ?? 0.32
+  const opacity = options.opacity ?? 0.22
   const fallbackText = options.fallbackText?.trim() || 'Jair A Costa'
 
   let width = source.width
