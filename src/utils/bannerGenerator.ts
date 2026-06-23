@@ -318,6 +318,64 @@ function getHighlightLabel(property: Property): string | null {
   return null
 }
 
+function getNarrativeDescription(property: Property, maxLen = 150): string {
+  const raw = (property.description || '').trim()
+  if (!raw) {
+    return `Imóvel bem localizado em ${property.location}. Agende sua visita.`
+  }
+
+  let intro = raw.split(/[✔✓•\n]/)[0] ?? raw
+  intro = intro
+    .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+    .replace(/[|]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  const stripPrefixes = [
+    property.title,
+    `${property.location}, ${property.city}`,
+    `${property.location} • ${property.city}`,
+    `${property.location} - ${property.city}`,
+    property.location,
+    property.city,
+    'São Paulo',
+    'Excelente sobrado',
+    'Sobrado à venda',
+    'Sobrado à Venda',
+  ]
+
+  let changed = true
+  while (changed) {
+    changed = false
+    for (const prefix of stripPrefixes) {
+      if (!prefix || prefix.length < 3) continue
+      const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const next = intro.replace(new RegExp(`^${escaped}[\\s,.|–-]*`, 'i'), '').trim()
+      if (next !== intro) {
+        intro = next
+        changed = true
+      }
+    }
+  }
+
+  const sentenceMatch = intro.match(/^(.+?[.!?])(?:\s|$)/)
+  if (sentenceMatch && sentenceMatch[1].length >= 40) {
+    intro = sentenceMatch[1].trim()
+  }
+
+  if (intro.length < 24) {
+    intro = `Excelente imóvel em ${property.location}, com ótima distribuição de espaços.`
+  }
+
+  if (intro.length > maxLen) {
+    const cut = intro.slice(0, maxLen)
+    const lastSpace = cut.lastIndexOf(' ')
+    intro = (lastSpace > 50 ? cut.slice(0, lastSpace) : cut).trim() + '…'
+  }
+
+  return intro
+}
+
 function getCleanDescription(property: Property, maxLen = 320): string {
   let text = (property.description || '')
     .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
@@ -400,7 +458,7 @@ function getFeatureHighlights(property: Property, max = 4): string[] {
 
 // ─── Layouts de foto ─────────────────────────────────────────────────────────
 
-/** Destaque: grade equilibrada — principal + laterais grandes + faixa inferior */
+/** Destaque: principal à esquerda + grade 2×2 à direita (sem faixas finas) */
 function drawClassicPhotoLayout(
   ctx: CanvasRenderingContext2D,
   photos: HTMLImageElement[],
@@ -423,30 +481,32 @@ function drawClassicPhotoLayout(
     return
   }
 
-  const stripCount = Math.max(0, photos.length - 3)
-  const stripH = stripCount > 0 ? Math.round(h * 0.26) : 0
-  const mainH = h - stripH - (stripH > 0 ? gap : 0)
+  const mainW = Math.round(w * 0.56) - gap / 2
+  drawCoverImage(ctx, photos[0], x, y, mainW, h)
 
-  const mainW = Math.round(w * 0.58) - gap / 2
-  drawCoverImage(ctx, photos[0], x, y, mainW, mainH)
+  const gridX = x + mainW + gap
+  const gridW = w - mainW - gap
+  const extras = photos.slice(1, 5)
 
-  const sideCount = Math.min(photos.length - 1, 2)
-  const colX = x + mainW + gap
-  const colW = w - mainW - gap
-  const cellH = (mainH - gap * (sideCount - 1)) / sideCount
-
-  for (let i = 0; i < sideCount; i++) {
-    drawCoverImage(ctx, photos[i + 1], colX, y + i * (cellH + gap), colW, cellH)
+  if (extras.length === 1) {
+    drawCoverImage(ctx, extras[0], gridX, y, gridW, h)
+    return
   }
 
-  if (stripH > 0) {
-    const stripPhotos = photos.slice(3)
-    const stripY = y + mainH + gap
-    const thumbW = (w - gap * (stripPhotos.length - 1)) / stripPhotos.length
-    stripPhotos.forEach((img, i) => {
-      drawCoverImage(ctx, img, x + i * (thumbW + gap), stripY, thumbW, stripH)
-    })
+  if (extras.length === 2) {
+    const cellH = (h - gap) / 2
+    drawCoverImage(ctx, extras[0], gridX, y, gridW, cellH)
+    drawCoverImage(ctx, extras[1], gridX, y + cellH + gap, gridW, cellH)
+    return
   }
+
+  const cellW = (gridW - gap) / 2
+  const cellH = (h - gap) / 2
+  extras.forEach((img, i) => {
+    const col = i % 2
+    const row = Math.floor(i / 2)
+    drawCoverImage(ctx, img, gridX + col * (cellW + gap), y + row * (cellH + gap), cellW, cellH)
+  })
 }
 
 /** Uma foto em tela cheia na área */
@@ -619,8 +679,9 @@ function drawDescription(
   maxLines: number,
   fontSize = 17,
   lineHeight = 26,
+  narrativeOnly = false,
 ): number {
-  const desc = getCleanDescription(property)
+  const desc = narrativeOnly ? getNarrativeDescription(property) : getCleanDescription(property)
   ctx.fillStyle = color
   ctx.font = `${fontSize}px Inter, Arial, sans-serif`
   const lines = wrapText(ctx, desc, maxW).slice(0, maxLines)
@@ -919,18 +980,29 @@ async function renderClassic(ctx: CanvasRenderingContext2D, input: RenderContext
   ctx.fillStyle = p.mutedColor
   ctx.font = '17px Inter, Arial, sans-serif'
   ctx.fillText(`${input.property.location} • ${input.property.city}`, pad, cy)
-  cy += 30
-
-  const descH = drawDescription(ctx, input.property, pad, cy, W - pad * 2, p.textColor, 2, 16, 24)
-  cy += descH + 20
+  cy += 28
 
   const iconsH = drawSpecIconsRow(ctx, input.property, pad, cy, W - pad * 2, p)
-  cy += iconsH + 18
+  cy += iconsH + 16
+
+  const descH = drawDescription(
+    ctx,
+    input.property,
+    pad,
+    cy,
+    textW,
+    p.textColor,
+    2,
+    16,
+    24,
+    true,
+  )
+  cy += descH + 14
 
   const highlights = getFeatureHighlights(input.property, 3)
-  if (highlights.length > 0 && cy < contentBottom - 50) {
-    const bulletsH = drawBulletsRow(ctx, highlights, pad, cy, W - pad * 2, p)
-    cy += bulletsH + 8
+  if (highlights.length > 0 && cy < contentBottom - 44) {
+    const bulletsH = drawBulletsRow(ctx, highlights, pad, cy, textW, p)
+    cy += bulletsH + 6
   }
 
   drawPriceBlock(ctx, input.property, p, priceX, panelY + 32, priceW, true)
