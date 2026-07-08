@@ -26,6 +26,22 @@ export interface Property {
   previousPriceValue?: number
   /** Texto de destaque no banner (ex: "Preço reduzido!") */
   promoHighlight?: string
+  /** Destaque principal na home (card grande no topo) */
+  mainFeatured?: boolean
+  /** Posição de exibição (1 = primeiro). Menor aparece antes. */
+  displayOrder?: number
+  /** Endereço/ponto de referência para o mapa (opcional) */
+  mapAddress?: string
+}
+
+/** Ordena por posição definida no admin (displayOrder); sem ordem vai ao fim. */
+export function sortProperties(list: Property[]): Property[] {
+  return [...list].sort((a, b) => {
+    const ao = a.displayOrder != null && a.displayOrder > 0 ? a.displayOrder : Number.MAX_SAFE_INTEGER
+    const bo = b.displayOrder != null && b.displayOrder > 0 ? b.displayOrder : Number.MAX_SAFE_INTEGER
+    if (ao !== bo) return ao - bo
+    return a.id - b.id
+  })
 }
 
 export const properties: Property[] = [

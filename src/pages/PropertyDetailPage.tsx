@@ -3,6 +3,7 @@ import { Bed, Bath, Maximize, MapPin, Phone, Car, ArrowLeft } from 'lucide-react
 import { WhatsAppIcon } from '../components/SocialIcons'
 import { buildPropertyWhatsAppUrl } from '../utils/whatsapp'
 import PropertyImageGallery from '../components/PropertyImageGallery'
+import PropertyMap from '../components/PropertyMap'
 import { useSiteContent } from '../context/SiteContentContext'
 
 export default function PropertyDetailPage() {
@@ -100,7 +101,7 @@ export default function PropertyDetailPage() {
           <p className="text-gray-600 leading-relaxed">{property.description}</p>
         </div>
 
-        <div>
+        <div className="mb-10">
           <h2 className="text-xl font-bold text-gray-900 mb-3">Comodidades</h2>
           <div className="flex flex-wrap gap-2">
             {property.amenities.map((amenity) => (
@@ -113,6 +114,11 @@ export default function PropertyDetailPage() {
             ))}
           </div>
         </div>
+
+        <PropertyMap
+          address={property.mapAddress?.trim() || `${property.location}, ${property.city}`}
+          title={property.title}
+        />
       </div>
     </div>
   )

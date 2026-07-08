@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Search } from 'lucide-react'
-import { type PropertyType } from '../data/properties'
+import { sortProperties, type PropertyType } from '../data/properties'
 import PropertyCard from '../components/PropertyCard'
 import { useSiteContent } from '../context/SiteContentContext'
 
@@ -33,7 +33,7 @@ export default function ListingsPage({ type }: ListingsPageProps) {
       )
     }
 
-    return result
+    return sortProperties(result)
   }, [type, query, initialCategory, properties])
 
   const title = type === 'Venda' ? 'Imóveis à venda' : 'Imóveis para alugar'

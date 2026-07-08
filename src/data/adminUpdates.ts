@@ -8,6 +8,18 @@ export type AdminUpdateEntry = {
 /** Histórico de atualizações — adicione a nova versão sempre no topo. */
 export const ADMIN_UPDATES: AdminUpdateEntry[] = [
   {
+    version: '2.5.0',
+    date: '2026-07-08',
+    title: 'Mapa, destaque principal e ordenação',
+    items: [
+      'Mapa da localização na página de cada imóvel (venda e aluguel)',
+      'Opção "Destaque principal" — card grande no topo da home',
+      'Home separa imóveis: primeiro Venda, depois Aluguel',
+      'Menos imóveis na home (mais enxuta)',
+      'Campo "Ordem de exibição" para definir a posição (1, 2, 3...) na home e nas listagens',
+    ],
+  },
+  {
     version: '2.4.5',
     date: '2025-06-23',
     title: 'Correção da galeria de fotos',

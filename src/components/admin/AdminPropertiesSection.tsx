@@ -4,6 +4,8 @@ import { Plus, Pencil, Trash2, Star, Search, Share2 } from 'lucide-react'
 
 import type { Property } from '../../data/properties'
 
+import { sortProperties } from '../../data/properties'
+
 import { useSiteContent } from '../../context/SiteContentContext'
 
 import { formatPropertyPrice } from '../../utils/propertyFormat'
@@ -116,19 +118,23 @@ export default function AdminPropertiesSection() {
 
     const term = query.trim().toLowerCase()
 
-    if (!term) return properties
+    const base = !term
 
-    return properties.filter(
+      ? properties
 
-      (property) =>
+      : properties.filter(
 
-        property.title.toLowerCase().includes(term) ||
+          (property) =>
 
-        property.location.toLowerCase().includes(term) ||
+            property.title.toLowerCase().includes(term) ||
 
-        property.city.toLowerCase().includes(term),
+            property.location.toLowerCase().includes(term) ||
 
-    )
+            property.city.toLowerCase().includes(term),
+
+        )
+
+    return sortProperties(base)
 
   }, [properties, query])
 
@@ -712,6 +718,56 @@ export default function AdminPropertiesSection() {
 
           </div>
 
+          <div>
+
+            <label className={adminLabelClass}>Ordem de exibição (1 = primeiro)</label>
+
+            <input
+
+              type="number"
+
+              min={0}
+
+              className={adminInputClass}
+
+              value={editing.displayOrder ?? ''}
+
+              onChange={(e) => {
+
+                const n = Number(e.target.value)
+
+                updateField('displayOrder', e.target.value === '' || n <= 0 ? undefined : n)
+
+              }}
+
+              placeholder="Ex: 1, 2, 3..."
+
+            />
+
+            <p className="text-xs text-gray-500 mt-1">Vale para a home e para as páginas de Venda/Aluguel. Vazio = fica no fim.</p>
+
+          </div>
+
+          <div className="lg:col-span-2">
+
+            <label className={adminLabelClass}>Endereço para o mapa (opcional)</label>
+
+            <input
+
+              className={adminInputClass}
+
+              value={editing.mapAddress ?? ''}
+
+              onChange={(e) => updateField('mapAddress', e.target.value || undefined)}
+
+              placeholder="Ex: Rua Exemplo, 123 - Vila Fachini, São Paulo"
+
+            />
+
+            <p className="text-xs text-gray-500 mt-1">Se vazio, o mapa usa o bairro e a cidade. A posição no mapa é aproximada.</p>
+
+          </div>
+
         </div>
 
 
@@ -750,7 +806,23 @@ export default function AdminPropertiesSection() {
 
             />
 
-            Destaque na home
+            Mostrar na home
+
+          </label>
+
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+
+            <input
+
+              type="checkbox"
+
+              checked={!!editing.mainFeatured}
+
+              onChange={(e) => updateField('mainFeatured', e.target.checked)}
+
+            />
+
+            Destaque principal (card grande no topo da home)
 
           </label>
 
@@ -1002,6 +1074,8 @@ export default function AdminPropertiesSection() {
 
             <tr>
 
+              <th className="px-4 py-3 font-medium">Ordem</th>
+
               <th className="px-4 py-3 font-medium">Imóvel</th>
 
               <th className="px-4 py-3 font-medium">Tipo</th>
@@ -1023,6 +1097,16 @@ export default function AdminPropertiesSection() {
             {filtered.map((property) => (
 
               <tr key={property.id} className="border-t border-gray-100">
+
+                <td className="px-4 py-3">
+
+                  <span className="inline-flex items-center justify-center min-w-7 h-7 px-2 rounded-full bg-gray-100 text-gray-700 text-xs font-semibold">
+
+                    {property.displayOrder && property.displayOrder > 0 ? property.displayOrder : '—'}
+
+                  </span>
+
+                </td>
 
                 <td className="px-4 py-3">
 
