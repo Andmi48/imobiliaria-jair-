@@ -5,7 +5,7 @@
 --
 -- 1) Crie o usuário do administrador (se ainda não existir):
 --    Authentication → Users → Add user
---    Email: o mesmo de VITE_ADMIN_EMAIL (ex: andretsc26@gmail.com)
+--    Email: andretec26@gmail.com (e-mail do administrador)
 --    Password: a senha atual de acesso
 --    Marque "Auto Confirm User"
 --

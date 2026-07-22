@@ -8,9 +8,9 @@ import {
   type ReactNode,
 } from 'react'
 import {
-  ADMIN_EMAIL,
   AUTH_KEY,
   SYNC_PASSWORD_KEY,
+  isAdminEmail,
   validateAdminCredentials,
 } from '../config/admin'
 import { isCloudEnabled, supabase } from '../lib/supabase'
@@ -59,7 +59,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     void supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return
       const email = data.session?.user?.email?.toLowerCase()
-      if (email && email === ADMIN_EMAIL) {
+      if (email && isAdminEmail(email)) {
         setLocalSession(true)
         setIsAuthenticated(true)
       }
@@ -73,7 +73,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         setIsAuthenticated(false)
         return
       }
-      if (email && email === ADMIN_EMAIL) {
+      if (email && isAdminEmail(email)) {
         setLocalSession(true)
         setIsAuthenticated(true)
       }
@@ -98,7 +98,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
         password,
       })
 
-      if (!error && data.user?.email?.toLowerCase() === ADMIN_EMAIL) {
+      if (!error && data.user?.email && isAdminEmail(data.user.email)) {
         setLocalSession(true, password)
         setIsAuthenticated(true)
         return { ok: true }
@@ -148,7 +148,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Não revela se o e-mail existe ou não
-    if (normalized !== ADMIN_EMAIL) {
+    if (!isAdminEmail(normalized)) {
       return {
         ok: true,
         message:
