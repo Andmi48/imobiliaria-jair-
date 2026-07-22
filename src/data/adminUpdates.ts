@@ -8,17 +8,6 @@ export type AdminUpdateEntry = {
 /** Histórico de atualizações — adicione a nova versão sempre no topo. */
 export const ADMIN_UPDATES: AdminUpdateEntry[] = [
   {
-    version: '2.5.4',
-    date: '2026-07-22',
-    title: 'Visual mais profissional em todo o site',
-    items: [
-      'Barra de busca menor e mais compacta',
-      'Cards de imóveis sem contorno pesado e visual mais sóbrio',
-      'Seção de serviços redesenhada sem caixas coloridas',
-      'Foto da seção Sobre sem cantos arredondados e sombra',
-    ],
-  },
-  {
     version: '2.5.3',
     date: '2026-07-21',
     title: 'Busca do banner mais profissional',
