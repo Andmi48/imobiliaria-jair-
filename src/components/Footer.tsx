@@ -44,11 +44,11 @@ export default function Footer() {
                 <div className="space-y-3">
                   <div>
                     <p className="font-semibold text-white text-sm leading-snug">Jair A Costa</p>
-                    <p className="text-sm text-gray-500 mt-1">CRECI: {site.creci || '19738-7'}</p>
+                    <p className="text-sm text-gray-500 mt-1">CRECI: 19738-F</p>
                   </div>
                   <div className="border-t border-gray-800 pt-3">
                     <p className="font-semibold text-white text-sm leading-snug">André Tadeu da S. Costa</p>
-                    <p className="text-sm text-gray-500 mt-1">CRECI: 90092</p>
+                    <p className="text-sm text-gray-500 mt-1">CRECI: 90092-F</p>
                   </div>
                 </div>
               </div>

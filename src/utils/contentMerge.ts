@@ -27,8 +27,14 @@ export function normalizePropertyOptions(options?: Partial<PropertyOptionsConfig
 }
 
 export function normalizeSiteContent(content: SiteContent): SiteContent {
+  const creci = content.site?.creci?.trim() === '19738-7' ? '19738-F' : content.site?.creci
+
   return {
     ...content,
+    site: {
+      ...content.site,
+      creci: creci || '19738-F',
+    },
     propertyOptions: normalizePropertyOptions(content.propertyOptions),
     properties: content.properties.map((property) => ({
       ...property,
