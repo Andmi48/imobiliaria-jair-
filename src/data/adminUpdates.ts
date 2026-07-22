@@ -8,6 +8,16 @@ export type AdminUpdateEntry = {
 /** Histórico de atualizações — adicione a nova versão sempre no topo. */
 export const ADMIN_UPDATES: AdminUpdateEntry[] = [
   {
+    version: '2.5.5',
+    date: '2026-07-22',
+    title: 'Carrossel de destaques na home',
+    items: [
+      'Nova seção de destaques em carrossel entre o banner e os imóveis',
+      'Marque “Mostrar no carrossel de destaques” no admin para o imóvel aparecer',
+      'Troca automática suave, setas e indicadores',
+    ],
+  },
+  {
     version: '2.5.3',
     date: '2026-07-21',
     title: 'Busca do banner mais profissional',

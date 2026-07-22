@@ -1,4 +1,5 @@
 import Hero from '../components/Hero'
+import FeaturedCarousel from '../components/FeaturedCarousel'
 import Properties from '../components/Properties'
 import Services from '../components/Services'
 import About from '../components/About'
@@ -9,6 +10,7 @@ export default function HomePage() {
   return (
     <>
       <Hero />
+      <FeaturedCarousel />
       <Properties />
       <Services />
       <About />
