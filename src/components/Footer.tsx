@@ -31,17 +31,28 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-12 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-16 items-start">
           <FooterColumn>
-            <Link to="/" className="flex items-start gap-3 group">
-              <div className="w-10 h-10 bg-[#0c1a2e] border border-gray-700 rounded-lg flex items-center justify-center shrink-0">
-                <Home className="w-5 h-5 text-white" />
+            <div className="flex items-start gap-3">
+              <Link
+                to="/"
+                className="w-10 h-10 bg-[#0c1a2e] border border-gray-700 rounded-lg flex items-center justify-center shrink-0 group"
+                aria-label="Página inicial"
+              >
+                <Home className="w-5 h-5 text-white group-hover:text-brand-blue-light transition-colors" />
+              </Link>
+              <div className="min-w-0">
+                <p className="text-white text-sm font-semibold mb-3">Consultores Imobiliário:</p>
+                <div className="space-y-3">
+                  <div>
+                    <p className="font-semibold text-white text-sm leading-snug">Jair A Costa</p>
+                    <p className="text-sm text-gray-500 mt-1">CRECI: {site.creci || '19738-7'}</p>
+                  </div>
+                  <div className="border-t border-gray-800 pt-3">
+                    <p className="font-semibold text-white text-sm leading-snug">André Tadeu da S. Costa</p>
+                    <p className="text-sm text-gray-500 mt-1">CRECI: 90092</p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <span className="font-semibold text-white text-sm leading-snug group-hover:text-brand-blue-light transition-colors block">
-                  Jair A Costa Consultor Imobiliário
-                </span>
-                <p className="text-sm text-gray-500 mt-2">CRECI: {site.creci}</p>
-              </div>
-            </Link>
+            </div>
           </FooterColumn>
 
           <FooterColumn title="Endereço">
