@@ -29,7 +29,7 @@ export default function Testimonials() {
             {track.map((t, index) => (
               <article
                 key={`${t.id ?? t.name}-${index}`}
-                className="testimonials-card shrink-0 w-[min(86vw,340px)] sm:w-[380px] bg-white rounded-xl border border-slate-200/80 shadow-[0_8px_30px_rgba(0,0,0,0.18)] p-7 sm:p-8"
+                className="testimonials-card shrink-0 w-[min(86vw,340px)] sm:w-[380px] bg-white rounded-md border border-slate-200/80 shadow-[0_8px_30px_rgba(0,0,0,0.18)] p-7 sm:p-8"
               >
                 <div className="flex items-start justify-between gap-4 mb-5">
                   <div className="flex gap-0.5">

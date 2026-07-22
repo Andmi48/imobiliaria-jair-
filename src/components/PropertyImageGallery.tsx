@@ -108,7 +108,7 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
 
   if (validImages.length === 0) {
     return (
-      <div className="relative rounded-2xl overflow-hidden mb-8 aspect-[16/9] bg-gray-100 flex items-center justify-center text-gray-400">
+      <div className="relative rounded-md overflow-hidden mb-8 aspect-[16/9] bg-gray-100 flex items-center justify-center text-gray-400">
         Sem fotos disponíveis
       </div>
     )
@@ -117,7 +117,7 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
   return (
     <>
       <div
-        className="relative rounded-2xl overflow-hidden mb-8 aspect-[16/9] bg-gray-100 group"
+        className="relative rounded-md overflow-hidden mb-8 aspect-[16/9] bg-gray-100 group"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
       >
@@ -200,7 +200,7 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
               <X className="w-5 h-5" />
             </button>
 
-            <div className="bg-white rounded-2xl overflow-hidden shadow-2xl">
+            <div className="bg-white rounded-md overflow-hidden shadow-2xl">
               <div className="relative aspect-[16/10] bg-gray-900">
                 <GalleryImage
                   key={validImages[lightboxIndex]}

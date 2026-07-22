@@ -61,7 +61,7 @@ export default function Contact() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
           <form
             onSubmit={handleSubmit}
-            className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6 space-y-4 h-full"
+            className="bg-white rounded-md border border-gray-100 shadow-sm p-5 sm:p-6 space-y-4 h-full"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -156,7 +156,7 @@ export default function Contact() {
           </form>
 
           {officeAddress && (
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6 flex flex-col h-full">
+            <div className="bg-white rounded-md border border-gray-100 shadow-sm p-5 sm:p-6 flex flex-col h-full">
               <h3 className="text-lg font-bold text-gray-900 mb-2">Nossa localização</h3>
               <div className="flex items-start gap-2 text-sm text-gray-600 mb-4">
                 <MapPin className="w-4 h-4 text-brand-blue shrink-0 mt-0.5" />
@@ -166,7 +166,7 @@ export default function Contact() {
                 </div>
               </div>
 
-              <div className="relative flex-1 min-h-[280px] rounded-xl overflow-hidden border border-gray-200">
+              <div className="relative flex-1 min-h-[280px] rounded-md overflow-hidden border border-gray-200">
                 <iframe
                   title={`Mapa de ${site.name}`}
                   src={mapEmbedSrc}
