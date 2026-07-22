@@ -8,6 +8,15 @@ export type AdminUpdateEntry = {
 /** Histórico de atualizações — adicione a nova versão sempre no topo. */
 export const ADMIN_UPDATES: AdminUpdateEntry[] = [
   {
+    version: '2.5.1',
+    date: '2026-07-21',
+    title: 'Mapa da imobiliária no Fale conosco',
+    items: [
+      'Mapa da localização da imobiliária ao lado do formulário Fale conosco na home',
+      'Endereço e link para abrir no Google Maps',
+    ],
+  },
+  {
     version: '2.5.0',
     date: '2026-07-08',
     title: 'Mapa, destaque principal e ordenação',
@@ -19,6 +28,7 @@ export const ADMIN_UPDATES: AdminUpdateEntry[] = [
       'Campo "Ordem de exibição" para definir a posição (1, 2, 3...) na home e nas listagens',
     ],
   },
+
   {
     version: '2.4.5',
     date: '2025-06-23',

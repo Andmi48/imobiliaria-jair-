@@ -1,4 +1,4 @@
-import { Send } from 'lucide-react'
+import { MapPin, Send } from 'lucide-react'
 import { useState } from 'react'
 import { useSiteContent } from '../context/SiteContentContext'
 
@@ -19,6 +19,14 @@ export default function Contact() {
     interest: 'comprar' as InterestType,
     message: '',
   })
+
+  const officeAddress = [site.address.street, site.address.city].filter(Boolean).join(', ')
+  const mapEmbedSrc = officeAddress
+    ? `https://www.google.com/maps?q=${encodeURIComponent(officeAddress)}&z=16&hl=pt-BR&output=embed`
+    : ''
+  const mapLinkSrc = officeAddress
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(officeAddress)}`
+    : ''
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,12 +56,12 @@ export default function Contact() {
   return (
     <section id="contato" className="py-14 bg-gray-50">
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
-        <div className="max-w-lg mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Fale conosco</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Fale conosco</h2>
 
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
           <form
             onSubmit={handleSubmit}
-            className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6 space-y-4"
+            className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6 space-y-4 h-full"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -146,6 +154,41 @@ export default function Contact() {
               Enviar
             </button>
           </form>
+
+          {officeAddress && (
+            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 sm:p-6 flex flex-col h-full">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Nossa localização</h3>
+              <div className="flex items-start gap-2 text-sm text-gray-600 mb-4">
+                <MapPin className="w-4 h-4 text-brand-blue shrink-0 mt-0.5" />
+                <div>
+                  <p>{site.address.street}</p>
+                  <p>{site.address.city}</p>
+                </div>
+              </div>
+
+              <div className="relative flex-1 min-h-[280px] rounded-xl overflow-hidden border border-gray-200">
+                <iframe
+                  title={`Mapa de ${site.name}`}
+                  src={mapEmbedSrc}
+                  className="absolute inset-0 w-full h-full"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  allowFullScreen
+                />
+              </div>
+
+              <a
+                href={mapLinkSrc}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 mt-4 text-sm font-semibold text-brand-blue hover:text-brand-blue-dark"
+              >
+                <MapPin className="w-4 h-4" />
+                Ver no Google Maps
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </section>
