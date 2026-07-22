@@ -8,6 +8,15 @@ export type AdminUpdateEntry = {
 /** Histórico de atualizações — adicione a nova versão sempre no topo. */
 export const ADMIN_UPDATES: AdminUpdateEntry[] = [
   {
+    version: '2.5.2',
+    date: '2026-07-21',
+    title: 'Depoimentos com visual profissional',
+    items: [
+      'Seção de depoimentos redesenhada com visual mais sóbrio e profissional',
+      'Carrossel contínuo bem lento (pausa ao passar o mouse)',
+    ],
+  },
+  {
     version: '2.5.1',
     date: '2026-07-21',
     title: 'Mapa da imobiliária no Fale conosco',

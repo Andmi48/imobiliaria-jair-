@@ -104,6 +104,33 @@ body {
   animation: gallery-image-in 0.4s ease-out forwards;
 }
 
+@keyframes testimonials-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.testimonials-marquee-mask {
+  overflow: hidden;
+  width: 100%;
+}
+
+.testimonials-marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 1.5rem;
+  padding-inline: 1.5rem;
+  animation: testimonials-marquee 70s linear infinite;
+  will-change: transform;
+}
+
+.testimonials-marquee-track:hover {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-bg-animate {
     animation: none;
@@ -112,6 +139,15 @@ body {
 
   .animate-slide-up {
     animation: none;
+  }
+
+  .testimonials-marquee-track {
+    animation: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
   }
 }
 
