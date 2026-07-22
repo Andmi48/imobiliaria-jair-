@@ -27,7 +27,9 @@ function MainFeaturedCard({ property }: { property: Property }) {
             Destaque
           </span>
           <span
-            className="absolute top-4 right-4 z-10 px-3 py-1 rounded-full text-xs font-bold text-white bg-brand-blue"
+            className={`absolute top-4 right-4 z-10 px-3 py-1 rounded-full text-xs font-bold text-white ${
+              property.type === 'Venda' ? 'bg-brand-blue' : 'bg-brand-red'
+            }`}
           >
             {property.type}
           </span>
@@ -44,7 +46,7 @@ function MainFeaturedCard({ property }: { property: Property }) {
           {property.description && (
             <p className="text-gray-600 mb-4 line-clamp-3">{property.description}</p>
           )}
-          <p className="text-3xl font-extrabold text-brand-blue-dark mb-5">{property.price}</p>
+          <p className="text-3xl font-extrabold text-gray-900 mb-5">{property.price}</p>
           <div className="flex items-center gap-6 text-gray-600 text-sm mb-6">
             {property.bedrooms > 0 && (
               <span className="flex items-center gap-1.5">

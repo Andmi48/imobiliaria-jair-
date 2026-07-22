@@ -29,7 +29,9 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             loading="lazy"
           />
           <span
-            className="absolute top-4 left-4 z-10 px-3 py-1 rounded-full text-xs font-bold text-white bg-brand-blue"
+            className={`absolute top-4 left-4 z-10 px-3 py-1 rounded-full text-xs font-bold text-white ${
+              property.type === 'Venda' ? 'bg-brand-blue' : 'bg-brand-red'
+            }`}
           >
             {property.type}
           </span>
@@ -59,7 +61,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           <h3 className="font-bold text-gray-900 mb-2 group-hover:text-brand-blue transition-colors">
             {property.title}
           </h3>
-          <p className="text-xl font-bold text-brand-blue-dark mb-3">{property.price}</p>
+          <p className="text-xl font-bold text-gray-900 mb-3">{property.price}</p>
           <div className="flex items-center gap-4 text-gray-500 text-sm">
             {property.bedrooms > 0 && (
               <span className="flex items-center gap-1">
