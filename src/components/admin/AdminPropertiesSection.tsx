@@ -806,7 +806,7 @@ export default function AdminPropertiesSection() {
 
             />
 
-            Mostrar no carrossel de destaques
+            Mostrar na home
 
           </label>
 
@@ -822,7 +822,7 @@ export default function AdminPropertiesSection() {
 
             />
 
-            Também incluir no carrossel (destaque principal)
+            Destaque principal (card grande no topo da home)
 
           </label>
 
