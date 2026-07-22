@@ -5,45 +5,47 @@ const services = [
     icon: Building2,
     title: 'Compra e Venda',
     description: 'Assessoria completa com transparência em cada etapa.',
-    color: 'bg-brand-blue',
   },
   {
     icon: Key,
     title: 'Locação',
     description: 'Encontre ou alugue seu imóvel com segurança.',
-    color: 'bg-brand-red',
   },
   {
     icon: Shield,
     title: 'Segurança Jurídica',
     description: 'Transações seguras com suporte especializado.',
-    color: 'bg-brand-blue',
   },
 ]
 
 export default function Services() {
   return (
-    <section id="servicos" className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-14">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+    <section id="servicos" className="py-16 sm:py-20 bg-white">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-10 sm:mb-12 max-w-xl">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 mb-2">
+            Atendimento
+          </p>
+          <h2 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">
             Nossos serviços
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {services.map((service) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-t border-slate-200">
+          {services.map((service, index) => (
             <div
               key={service.title}
-              className="text-center p-8 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300"
+              className={`py-8 md:py-9 md:pr-8 ${
+                index > 0 ? 'md:pl-8 border-t md:border-t-0 md:border-l border-slate-200' : ''
+              }`}
             >
-              <div
-                className={`w-14 h-14 ${service.color} rounded-2xl flex items-center justify-center mb-5 mx-auto`}
-              >
-                <service.icon className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{service.title}</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">{service.description}</p>
+              <service.icon className="w-5 h-5 text-slate-700 mb-5" strokeWidth={1.5} />
+              <h3 className="text-base font-semibold text-slate-900 mb-2 tracking-tight">
+                {service.title}
+              </h3>
+              <p className="text-sm text-slate-500 leading-relaxed max-w-xs">
+                {service.description}
+              </p>
             </div>
           ))}
         </div>

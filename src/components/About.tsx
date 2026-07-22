@@ -5,10 +5,10 @@ export default function About() {
   const { about } = useSiteContent()
 
   return (
-    <section id="sobre" className="py-24 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="rounded-2xl overflow-hidden shadow-xl">
+    <section id="sobre" className="py-16 sm:py-20 bg-slate-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+          <div className="overflow-hidden">
             <ProtectedImage
               src={about.image}
               alt={about.title}
@@ -18,14 +18,17 @@ export default function About() {
           </div>
 
           <div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
+            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 mb-3">
+              Sobre nós
+            </p>
+            <h2 className="text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight mb-5 leading-snug">
               {about.title}{' '}
-              <span className="text-brand-blue">{about.titleHighlight}</span>
+              <span className="text-slate-600">{about.titleHighlight}</span>
             </h2>
-            <p className="text-gray-600 leading-relaxed mb-6">
+            <p className="text-slate-600 text-[15px] leading-relaxed mb-4">
               {about.paragraph1}
             </p>
-            <p className="text-gray-600 leading-relaxed">
+            <p className="text-slate-600 text-[15px] leading-relaxed">
               {about.paragraph2}
             </p>
           </div>

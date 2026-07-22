@@ -37,23 +37,23 @@ export default function Hero() {
       <div className="absolute inset-0 bg-[#0b1220]/72" />
       <div className="absolute inset-0 bg-gradient-to-t from-[#0b1220] via-[#0b1220]/55 to-[#0b1220]/35" />
 
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-16 sm:py-32">
-        <div className="max-w-3xl mb-10 sm:mb-12">
-          <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] text-white/55 mb-4">
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-14 sm:py-28">
+        <div className="max-w-2xl mb-8 sm:mb-9">
+          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/50 mb-3">
             {site.shortName || site.name}
             {site.creci ? ` · CRECI ${site.creci}` : ''}
           </p>
-          <h1 className="text-3xl sm:text-5xl lg:text-[3.4rem] font-semibold text-white leading-[1.12] tracking-tight mb-5">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-white leading-[1.15] tracking-tight mb-4">
             {hero.welcomePrefix}{' '}
             <span className="text-white/90">{hero.welcomeHighlight}</span>
           </h1>
-          <p className="text-base sm:text-lg text-white/65 max-w-xl leading-relaxed">
+          <p className="text-sm sm:text-base text-white/60 max-w-lg leading-relaxed">
             {hero.subtitle}
           </p>
         </div>
 
-        <div className="bg-white/95 backdrop-blur-sm border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.35)]">
-          <div className="flex border-b border-slate-200">
+        <div className="max-w-3xl bg-white/95 backdrop-blur-sm shadow-[0_12px_40px_rgba(0,0,0,0.28)]">
+          <div className="flex items-center gap-1 px-3 sm:px-4 pt-2.5">
             {([
               { value: 'comprar' as const, label: 'Comprar' },
               { value: 'alugar' as const, label: 'Alugar' },
@@ -64,97 +64,84 @@ export default function Hero() {
                   key={option.value}
                   type="button"
                   onClick={() => setSearchType(option.value)}
-                  className={`relative px-6 sm:px-8 py-3.5 text-sm font-semibold transition-colors ${
-                    active ? 'text-slate-900' : 'text-slate-400 hover:text-slate-700'
+                  className={`relative px-3.5 py-2 text-[13px] font-medium transition-colors ${
+                    active ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
                   {option.label}
                   {active && (
-                    <span className="absolute left-6 right-6 bottom-0 h-[2px] bg-slate-900" />
+                    <span className="absolute left-3.5 right-3.5 bottom-0 h-px bg-slate-900" />
                   )}
                 </button>
               )
             })}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-[1.4fr_1fr_auto] divide-y sm:divide-y-0 sm:divide-x divide-slate-200">
-            <label className="flex items-center gap-3 px-4 sm:px-5 py-4 cursor-text">
-              <MapPin className="w-4 h-4 text-slate-400 shrink-0" strokeWidth={1.75} />
-              <div className="min-w-0 flex-1 text-left">
-                <span className="block text-[10px] uppercase tracking-[0.16em] text-slate-400 font-semibold mb-1">
-                  Localização
-                </span>
-                <input
-                  type="text"
-                  placeholder="Cidade, bairro ou região"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="w-full bg-transparent outline-none text-slate-800 placeholder:text-slate-400 text-sm"
-                />
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-[1.3fr_1fr_auto] items-stretch border-t border-slate-100">
+            <label className="flex items-center gap-2.5 px-3.5 sm:px-4 py-2.5 cursor-text sm:border-r border-slate-100">
+              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" strokeWidth={1.75} />
+              <input
+                type="text"
+                placeholder="Cidade, bairro ou região"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="w-full bg-transparent outline-none text-slate-800 placeholder:text-slate-400 text-[13px]"
+              />
             </label>
 
-            <label className="flex items-center gap-3 px-4 sm:px-5 py-4 cursor-pointer">
-              <div className="min-w-0 flex-1 text-left relative">
-                <span className="block text-[10px] uppercase tracking-[0.16em] text-slate-400 font-semibold mb-1">
-                  Tipo de imóvel
-                </span>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full appearance-none bg-transparent outline-none text-slate-800 text-sm cursor-pointer pr-6"
-                >
-                  <option value="">Todos os tipos</option>
-                  {propertyOptions.categories.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-0 bottom-0.5 pointer-events-none" />
-              </div>
-            </label>
-
-            <div className="p-3 sm:p-3 flex">
-              <button
-                type="button"
-                onClick={handleSearch}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white px-7 py-3.5 text-sm font-semibold tracking-wide transition-colors"
+            <label className="flex items-center gap-2 px-3.5 sm:px-4 py-2.5 cursor-pointer relative sm:border-r border-slate-100">
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full appearance-none bg-transparent outline-none text-slate-800 text-[13px] cursor-pointer pr-5"
               >
-                <Search className="w-4 h-4" strokeWidth={2} />
-                Buscar
-              </button>
-            </div>
+                <option value="">Tipo de imóvel</option>
+                {propertyOptions.categories.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3.5 pointer-events-none" />
+            </label>
+
+            <button
+              type="button"
+              onClick={handleSearch}
+              className="inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white px-5 py-2.5 text-[13px] font-medium transition-colors"
+            >
+              <Search className="w-3.5 h-3.5" strokeWidth={2} />
+              Buscar
+            </button>
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+        <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 max-w-3xl">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]">
             <button
               type="button"
               onClick={() => goToListings('comprar')}
-              className="text-white/80 hover:text-white underline underline-offset-4 decoration-white/30 hover:decoration-white transition-colors"
+              className="text-white/70 hover:text-white transition-colors"
             >
-              Ver imóveis à venda
+              Imóveis à venda
             </button>
+            <span className="text-white/25">|</span>
             <button
               type="button"
               onClick={() => goToListings('alugar')}
-              className="text-white/80 hover:text-white underline underline-offset-4 decoration-white/30 hover:decoration-white transition-colors"
+              className="text-white/70 hover:text-white transition-colors"
             >
-              Ver imóveis para alugar
+              Imóveis para alugar
             </button>
           </div>
 
           {hero.stats.length > 0 && (
-            <div className="flex flex-wrap gap-x-8 gap-y-3">
+            <div className="flex flex-wrap gap-x-6 gap-y-2">
               {hero.stats.map((stat) => (
                 <div key={stat.label} className="text-left">
-                  <div className="text-xl sm:text-2xl font-semibold text-white tracking-tight">
-                    {stat.value}
-                  </div>
-                  <div className="text-[11px] uppercase tracking-[0.14em] text-white/45 mt-1">
+                  <div className="text-lg font-semibold text-white tracking-tight">{stat.value}</div>
+                  <div className="text-[10px] uppercase tracking-[0.12em] text-white/40 mt-0.5">
                     {stat.label}
                   </div>
                 </div>
