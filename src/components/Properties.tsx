@@ -12,7 +12,7 @@ function MainFeaturedCard({ property }: { property: Property }) {
   return (
     <Link
       to={`/imovel/${property.id}`}
-      className="group block relative rounded-3xl overflow-hidden border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300 mb-12"
+      className="group block relative overflow-hidden border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300 mb-12"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2">
         <div className="relative aspect-[16/10] lg:aspect-auto lg:min-h-[380px] overflow-hidden bg-gray-100">
@@ -27,9 +27,7 @@ function MainFeaturedCard({ property }: { property: Property }) {
             Destaque
           </span>
           <span
-            className={`absolute top-4 right-4 z-10 px-3 py-1 rounded-full text-xs font-bold text-white ${
-              property.type === 'Venda' ? 'bg-brand-blue' : 'bg-brand-red'
-            }`}
+            className="absolute top-4 right-4 z-10 px-3 py-1 rounded-full text-xs font-bold text-white bg-brand-blue"
           >
             {property.type}
           </span>
@@ -46,7 +44,7 @@ function MainFeaturedCard({ property }: { property: Property }) {
           {property.description && (
             <p className="text-gray-600 mb-4 line-clamp-3">{property.description}</p>
           )}
-          <p className="text-3xl font-extrabold text-brand-red mb-5">{property.price}</p>
+          <p className="text-3xl font-extrabold text-brand-blue-dark mb-5">{property.price}</p>
           <div className="flex items-center gap-6 text-gray-600 text-sm mb-6">
             {property.bedrooms > 0 && (
               <span className="flex items-center gap-1.5">

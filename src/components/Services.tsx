@@ -1,20 +1,20 @@
-import { Building2, Key, Shield } from 'lucide-react'
+import { Handshake, Home, Scale } from 'lucide-react'
 
 const services = [
   {
-    icon: Building2,
+    icon: Handshake,
     title: 'Compra e Venda',
     description: 'Assessoria completa com transparência em cada etapa.',
     color: 'bg-brand-blue',
   },
   {
-    icon: Key,
+    icon: Home,
     title: 'Locação',
     description: 'Encontre ou alugue seu imóvel com segurança.',
     color: 'bg-brand-red',
   },
   {
-    icon: Shield,
+    icon: Scale,
     title: 'Segurança Jurídica',
     description: 'Transações seguras com suporte especializado.',
     color: 'bg-brand-blue',
@@ -35,10 +35,10 @@ export default function Services() {
           {services.map((service) => (
             <div
               key={service.title}
-              className="text-center p-8 rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-300"
+              className="text-center p-8 border border-gray-100 hover:shadow-lg transition-all duration-300"
             >
               <div
-                className={`w-14 h-14 ${service.color} rounded-2xl flex items-center justify-center mb-5 mx-auto`}
+                className={`w-14 h-14 ${service.color} flex items-center justify-center mb-5 mx-auto`}
               >
                 <service.icon className="w-7 h-7 text-white" />
               </div>

@@ -116,7 +116,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-10 pt-6 text-center text-xs text-gray-500 space-y-2">
-          <p>&copy; {new Date().getFullYear()} {site.name}. Todos os direitos reservados.</p>
+          <p>&copy; 2025 {site.name}. Todos os direitos reservados.</p>
           <p>
             Desenvolvido por{' '}
             <a
