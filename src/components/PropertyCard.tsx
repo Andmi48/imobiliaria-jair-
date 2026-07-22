@@ -18,7 +18,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   const coverImage = getPropertyCoverImage(property)
 
   return (
-    <article className="group relative bg-white overflow-hidden rounded-md border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+    <article className="group relative bg-white overflow-hidden rounded-site border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
       <Link to={`/imovel/${property.id}`} className="block">
         <div className="relative overflow-hidden aspect-[4/3]">
           <ProtectedImage

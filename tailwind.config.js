@@ -10,6 +10,9 @@ export default {
         'brand-red': '#dc2626',
         'brand-red-dark': '#b91c1c',
       },
+      borderRadius: {
+        site: '10px',
+      },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },

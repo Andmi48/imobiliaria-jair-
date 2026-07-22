@@ -12,7 +12,7 @@ function MainFeaturedCard({ property }: { property: Property }) {
   return (
     <Link
       to={`/imovel/${property.id}`}
-      className="group block relative overflow-hidden rounded-md border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300 mb-12"
+      className="group block relative overflow-hidden rounded-site border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300 mb-12"
     >
       <div className="grid grid-cols-1 lg:grid-cols-2">
         <div className="relative aspect-[16/10] lg:aspect-auto lg:min-h-[380px] overflow-hidden bg-gray-100">

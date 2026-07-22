@@ -21,7 +21,7 @@ export default function PropertyMap({ address, title }: PropertyMapProps) {
         <span>{query}</span>
       </div>
 
-      <div className="relative rounded-md overflow-hidden border border-gray-200 shadow-sm">
+      <div className="relative rounded-site overflow-hidden border border-gray-200 shadow-sm">
         <iframe
           title={title ? `Mapa de ${title}` : 'Mapa do imóvel'}
           src={embedSrc}
