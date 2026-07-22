@@ -1,4 +1,4 @@
-import { Search, MapPin, Building2, Key } from 'lucide-react'
+import { Search, MapPin, ChevronDown } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSiteContent } from '../context/SiteContentContext'
@@ -8,7 +8,7 @@ export default function Hero() {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('')
   const navigate = useNavigate()
-  const { hero, propertyOptions } = useSiteContent()
+  const { hero, propertyOptions, site } = useSiteContent()
 
   const handleSearch = () => {
     const path = searchType === 'comprar' ? '/venda' : '/aluguel'
@@ -26,123 +26,141 @@ export default function Hero() {
   return (
     <section
       id="inicio"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+      className="relative min-h-screen flex items-end sm:items-center justify-center overflow-hidden"
     >
       <div className="absolute inset-0 overflow-hidden">
         <div
           className="absolute inset-0 hero-bg-animate bg-cover bg-center scale-110"
-          style={{
-            backgroundImage: `url(${hero.backgroundImage})`,
-          }}
+          style={{ backgroundImage: `url(${hero.backgroundImage})` }}
         />
       </div>
-      <div className="absolute inset-0 bg-gradient-to-br from-brand-blue-dark/90 via-brand-blue/80 to-brand-blue-dark/70" />
+      <div className="absolute inset-0 bg-[#0b1220]/72" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#0b1220] via-[#0b1220]/55 to-[#0b1220]/35" />
 
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-brand-red rounded-full blur-3xl" />
-      </div>
+      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-16 sm:py-32">
+        <div className="max-w-3xl mb-10 sm:mb-12">
+          <p className="text-[11px] sm:text-xs font-semibold uppercase tracking-[0.22em] text-white/55 mb-4">
+            {site.shortName || site.name}
+            {site.creci ? ` · CRECI ${site.creci}` : ''}
+          </p>
+          <h1 className="text-3xl sm:text-5xl lg:text-[3.4rem] font-semibold text-white leading-[1.12] tracking-tight mb-5">
+            {hero.welcomePrefix}{' '}
+            <span className="text-white/90">{hero.welcomeHighlight}</span>
+          </h1>
+          <p className="text-base sm:text-lg text-white/65 max-w-xl leading-relaxed">
+            {hero.subtitle}
+          </p>
+        </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 text-center">
-        <h1 className="text-3xl sm:text-4xl lg:text-6xl font-extrabold text-white leading-tight mb-6 max-w-4xl mx-auto">
-          {hero.welcomePrefix}{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-blue-200">
-            {hero.welcomeHighlight}
-          </span>
-        </h1>
-
-        <p className="text-lg sm:text-xl text-white/80 max-w-2xl mx-auto mb-12">{hero.subtitle}</p>
-
-        <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl shadow-blue-900/20 p-2 sm:p-3">
-          <div className="flex gap-2 mb-3 px-2">
-            <button
-              type="button"
-              onClick={() => setSearchType('comprar')}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                searchType === 'comprar'
-                  ? 'bg-brand-blue text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <Building2 className="w-4 h-4" />
-              Comprar
-            </button>
-            <button
-              type="button"
-              onClick={() => setSearchType('alugar')}
-              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                searchType === 'alugar'
-                  ? 'bg-brand-blue text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <Key className="w-4 h-4" />
-              Alugar
-            </button>
+        <div className="bg-white/95 backdrop-blur-sm border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.35)]">
+          <div className="flex border-b border-slate-200">
+            {([
+              { value: 'comprar' as const, label: 'Comprar' },
+              { value: 'alugar' as const, label: 'Alugar' },
+            ]).map((option) => {
+              const active = searchType === option.value
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setSearchType(option.value)}
+                  className={`relative px-6 sm:px-8 py-3.5 text-sm font-semibold transition-colors ${
+                    active ? 'text-slate-900' : 'text-slate-400 hover:text-slate-700'
+                  }`}
+                >
+                  {option.label}
+                  {active && (
+                    <span className="absolute left-6 right-6 bottom-0 h-[2px] bg-slate-900" />
+                  )}
+                </button>
+              )
+            })}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2">
-            <div className="flex-1 flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
-              <MapPin className="w-5 h-5 text-brand-blue shrink-0" />
-              <input
-                type="text"
-                placeholder="Cidade, bairro ou região..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="w-full bg-transparent outline-none text-gray-700 placeholder:text-gray-400"
-              />
-            </div>
-            <div className="flex-1 flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
-              <Building2 className="w-5 h-5 text-brand-blue shrink-0" />
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-transparent outline-none text-gray-700 cursor-pointer"
+          <div className="grid grid-cols-1 sm:grid-cols-[1.4fr_1fr_auto] divide-y sm:divide-y-0 sm:divide-x divide-slate-200">
+            <label className="flex items-center gap-3 px-4 sm:px-5 py-4 cursor-text">
+              <MapPin className="w-4 h-4 text-slate-400 shrink-0" strokeWidth={1.75} />
+              <div className="min-w-0 flex-1 text-left">
+                <span className="block text-[10px] uppercase tracking-[0.16em] text-slate-400 font-semibold mb-1">
+                  Localização
+                </span>
+                <input
+                  type="text"
+                  placeholder="Cidade, bairro ou região"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  className="w-full bg-transparent outline-none text-slate-800 placeholder:text-slate-400 text-sm"
+                />
+              </div>
+            </label>
+
+            <label className="flex items-center gap-3 px-4 sm:px-5 py-4 cursor-pointer">
+              <div className="min-w-0 flex-1 text-left relative">
+                <span className="block text-[10px] uppercase tracking-[0.16em] text-slate-400 font-semibold mb-1">
+                  Tipo de imóvel
+                </span>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full appearance-none bg-transparent outline-none text-slate-800 text-sm cursor-pointer pr-6"
+                >
+                  <option value="">Todos os tipos</option>
+                  {propertyOptions.categories.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-0 bottom-0.5 pointer-events-none" />
+              </div>
+            </label>
+
+            <div className="p-3 sm:p-3 flex">
+              <button
+                type="button"
+                onClick={handleSearch}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white px-7 py-3.5 text-sm font-semibold tracking-wide transition-colors"
               >
-                <option value="">Tipo de imóvel</option>
-                {propertyOptions.categories.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                <Search className="w-4 h-4" strokeWidth={2} />
+                Buscar
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={handleSearch}
-              className="flex items-center justify-center gap-2 bg-brand-red hover:bg-brand-red-dark text-white px-8 py-3.5 rounded-xl font-semibold transition-all hover:shadow-lg hover:shadow-red-500/30"
-            >
-              <Search className="w-5 h-5" />
-              Buscar
-            </button>
           </div>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-4 mt-10">
-          <button
-            type="button"
-            onClick={() => goToListings('comprar')}
-            className="px-6 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/30 text-white text-sm font-semibold transition-all"
-          >
-            Ver todos à venda
-          </button>
-          <button
-            type="button"
-            onClick={() => goToListings('alugar')}
-            className="px-6 py-2.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/30 text-white text-sm font-semibold transition-all"
-          >
-            Ver todos para alugar
-          </button>
-        </div>
+        <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+            <button
+              type="button"
+              onClick={() => goToListings('comprar')}
+              className="text-white/80 hover:text-white underline underline-offset-4 decoration-white/30 hover:decoration-white transition-colors"
+            >
+              Ver imóveis à venda
+            </button>
+            <button
+              type="button"
+              onClick={() => goToListings('alugar')}
+              className="text-white/80 hover:text-white underline underline-offset-4 decoration-white/30 hover:decoration-white transition-colors"
+            >
+              Ver imóveis para alugar
+            </button>
+          </div>
 
-        <div className="flex flex-wrap justify-center gap-8 mt-12">
-          {hero.stats.map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-white">{stat.value}</div>
-              <div className="text-white/60 text-sm mt-1">{stat.label}</div>
+          {hero.stats.length > 0 && (
+            <div className="flex flex-wrap gap-x-8 gap-y-3">
+              {hero.stats.map((stat) => (
+                <div key={stat.label} className="text-left">
+                  <div className="text-xl sm:text-2xl font-semibold text-white tracking-tight">
+                    {stat.value}
+                  </div>
+                  <div className="text-[11px] uppercase tracking-[0.14em] text-white/45 mt-1">
+                    {stat.label}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       </div>
     </section>
