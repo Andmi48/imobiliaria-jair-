@@ -12,6 +12,7 @@ import CookiePolicyPage from './pages/CookiePolicyPage'
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
 import LegalDisclaimerPage from './pages/LegalDisclaimerPage'
 import AdminLoginPage from './pages/admin/AdminLoginPage'
+import AdminResetPasswordPage from './pages/admin/AdminResetPasswordPage'
 import AdminPanelPage from './pages/admin/AdminPanelPage'
 import AdminRoute from './components/admin/AdminRoute'
 
@@ -42,6 +43,8 @@ function App() {
             <ScrollManager />
             <Routes>
               <Route path="/acesso" element={<AdminLoginPage />} />
+              <Route path="/acesso/login" element={<AdminLoginPage />} />
+              <Route path="/acesso/redefinir-senha" element={<AdminResetPasswordPage />} />
               <Route
                 path="/acesso/painel"
                 element={

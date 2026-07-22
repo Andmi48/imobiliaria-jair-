@@ -82,7 +82,7 @@ export default function AdminPanelPage() {
             </Link>
             <button
               type="button"
-              onClick={logout}
+              onClick={() => void logout()}
               className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-brand-red hover:bg-brand-red-dark text-sm font-medium"
             >
               <LogOut className="w-4 h-4" />

@@ -8,6 +8,16 @@ export type AdminUpdateEntry = {
 /** Histórico de atualizações — adicione a nova versão sempre no topo. */
 export const ADMIN_UPDATES: AdminUpdateEntry[] = [
   {
+    version: '2.5.6',
+    date: '2026-07-22',
+    title: 'Correção da recuperação de senha do admin',
+    items: [
+      'Link de “Esqueci a senha” agora aponta para a tela correta de nova senha',
+      'Login passa a usar também o Auth do Supabase (necessário para o e-mail funcionar)',
+      'Nova página /acesso/redefinir-senha para definir a senha após o e-mail',
+    ],
+  },
+  {
     version: '2.5.5',
     date: '2026-07-22',
     title: 'Carrossel de destaques na home',

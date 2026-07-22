@@ -1,0 +1,26 @@
+-- ============================================================
+-- RECUPERAÇÃO DE SENHA DO ADMIN (Supabase Auth)
+-- Dashboard: Authentication → Users / URL Configuration
+-- ============================================================
+--
+-- 1) Crie o usuário do administrador (se ainda não existir):
+--    Authentication → Users → Add user
+--    Email: o mesmo de VITE_ADMIN_EMAIL (ex: andretsc26@gmail.com)
+--    Password: a senha atual de acesso
+--    Marque "Auto Confirm User"
+--
+-- 2) Em Authentication → URL Configuration, adicione:
+--    Site URL: https://imobiliaria-jair.vercel.app
+--    Redirect URLs (adicione todas):
+--      https://imobiliaria-jair.vercel.app/acesso/redefinir-senha
+--      https://imobiliaria-jair.vercel.app/**
+--      http://localhost:5173/acesso/redefinir-senha
+--
+-- 3) Em Authentication → Emails, confira se "Reset password" está ativo.
+--    Em projetos novos o e-mail padrão do Supabase tem limite diário.
+--
+-- Sem o usuário Auth criado, o e-mail de recuperação NÃO chega
+-- (ou a redefinição não funciona de verdade).
+-- ============================================================
+
+select 'Configure o usuário Auth e as Redirect URLs conforme os comentários acima.' as instrucao;

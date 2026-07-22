@@ -12,21 +12,22 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
   const [sendingReset, setSendingReset] = useState(false)
+  const [loggingIn, setLoggingIn] = useState(false)
 
   if (isAuthenticated) {
     return <Navigate to="/acesso/painel" replace />
   }
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
-    const success = login(email, password)
-    if (!success) {
-      setError('E-mail ou senha incorretos. Tente novamente.')
-      setInfo('')
-      return
-    }
+    setLoggingIn(true)
     setError('')
     setInfo('')
+    const result = await login(email, password)
+    setLoggingIn(false)
+    if (!result.ok) {
+      setError(result.message || 'E-mail ou senha incorretos. Tente novamente.')
+    }
   }
 
   const handleForgotSubmit = async (event: React.FormEvent) => {
@@ -67,7 +68,7 @@ export default function AdminLoginPage() {
         </h1>
         <p className="text-sm text-gray-500 text-center mb-8">
           {forgotMode
-            ? 'Informe seu e-mail para receber o link de redefinição de senha.'
+            ? 'Informe o e-mail do administrador. Você receberá um link para criar uma nova senha.'
             : 'Acesse com seu e-mail e senha para gerenciar o site.'}
         </p>
 
@@ -114,7 +115,7 @@ export default function AdminLoginPage() {
             </button>
           </form>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 E-mail
@@ -173,10 +174,11 @@ export default function AdminLoginPage() {
 
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 bg-brand-red hover:bg-brand-red-dark text-white py-3 rounded-lg font-semibold transition-colors"
+              disabled={loggingIn}
+              className="w-full flex items-center justify-center gap-2 bg-brand-red hover:bg-brand-red-dark text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-60"
             >
-              <LogIn className="w-4 h-4" />
-              Entrar no painel
+              {loggingIn ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
+              {loggingIn ? 'Entrando...' : 'Entrar no painel'}
             </button>
           </form>
         )}
