@@ -145,9 +145,9 @@ export default function Properties() {
     <section id="imoveis" className="py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Destaques</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Nossos imóveis</h2>
           <p className="text-gray-600 max-w-xl mx-auto">
-            Os melhores imóveis selecionados para você.
+            Confira as opções à venda e para alugar.
           </p>
         </div>
 
