@@ -13,9 +13,11 @@ export default function AdminPublishBar() {
     isCloudConfigured,
     isLoadingFromCloud,
     isReady,
+    cloudDraftReady,
   } = useSiteContent()
 
   const [publishing, setPublishing] = useState(false)
+  const [savingDraft, setSavingDraft] = useState(false)
 
   if (isLoadingFromCloud || !isReady) return null
 
@@ -32,17 +34,25 @@ export default function AdminPublishBar() {
     }
   }
 
-  const handleDiscard = () => {
+  const handleDiscard = async () => {
     if (!confirm('Descartar alterações não publicadas e voltar à versão online?')) return
-    discardDraft()
+    await discardDraft()
   }
 
-  const handleSaveDraft = () => {
-    const ok = saveDraft()
-    if (ok) {
-      alert('Rascunho salvo neste navegador. O site público não foi alterado.')
-    } else {
-      alert('Não foi possível salvar o rascunho. Libere espaço no navegador.')
+  const handleSaveDraft = async () => {
+    setSavingDraft(true)
+    try {
+      const ok = await saveDraft()
+      if (ok) {
+        alert('Rascunho salvo na nuvem. Você pode abrir o painel em outro computador e continuar.')
+      } else {
+        alert(
+          lastSyncError ??
+            'Não foi possível salvar o rascunho na nuvem. Execute supabase/site-content-draft.sql no Supabase.',
+        )
+      }
+    } finally {
+      setSavingDraft(false)
     }
   }
 
@@ -64,12 +74,20 @@ export default function AdminPublishBar() {
               Alterações em rascunho — ainda não publicadas
             </p>
             <p className="text-amber-800 mt-1">
-              Edite à vontade. Clique em <strong>Publicar no site</strong> quando quiser que os visitantes vejam as mudanças.
+              O rascunho é salvo na nuvem automaticamente. Em outro computador, entre no admin para continuar.
+              Clique em <strong>Publicar no site</strong> quando quiser que os visitantes vejam.
             </p>
+            {isCloudConfigured && (
+              <p className="text-amber-700 mt-1 text-xs">
+                {cloudDraftReady
+                  ? 'Rascunho sincronizado na nuvem.'
+                  : 'Aguardando sincronizar rascunho na nuvem…'}
+              </p>
+            )}
           </>
         ) : lastSyncStatus === 'error' ? (
           <>
-            <p className="font-semibold text-red-900">Erro na última publicação</p>
+            <p className="font-semibold text-red-900">Erro na última sincronização</p>
             <p className="text-red-700 mt-1">{lastSyncError}</p>
           </>
         ) : (
@@ -87,7 +105,7 @@ export default function AdminPublishBar() {
         {hasUnpublishedChanges && (
           <button
             type="button"
-            onClick={handleDiscard}
+            onClick={() => void handleDiscard()}
             className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             <RotateCcw className="w-4 h-4" />
@@ -96,11 +114,12 @@ export default function AdminPublishBar() {
         )}
         <button
           type="button"
-          onClick={handleSaveDraft}
-          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+          onClick={() => void handleSaveDraft()}
+          disabled={savingDraft}
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60"
         >
           <Save className="w-4 h-4" />
-          Salvar rascunho
+          {savingDraft ? 'Salvando...' : 'Salvar rascunho'}
         </button>
         <button
           type="button"

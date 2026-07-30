@@ -8,6 +8,16 @@ export type AdminUpdateEntry = {
 /** Histórico de atualizações — adicione a nova versão sempre no topo. */
 export const ADMIN_UPDATES: AdminUpdateEntry[] = [
   {
+    version: '2.5.7',
+    date: '2026-07-30',
+    title: 'Rascunho do admin na nuvem',
+    items: [
+      'Rascunho sincroniza na nuvem — continue de qualquer computador',
+      'Salvar rascunho e alterações automáticas sobem para o Supabase',
+      'Execute supabase/site-content-draft.sql uma vez no Supabase se ainda não rodou',
+    ],
+  },
+  {
     version: '2.5.6',
     date: '2026-07-22',
     title: 'Correção da recuperação de senha do admin',

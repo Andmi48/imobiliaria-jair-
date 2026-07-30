@@ -38,6 +38,95 @@ export async function fetchCloudContent(): Promise<{ content: SiteContent | null
 
 export type SaveCloudResult = { ok: true } | { ok: false; error: string }
 
+function isDraftContentUseful(data: unknown): data is SiteContent {
+  if (!isValidContent(data)) return false
+  return Array.isArray(data.properties) // permite rascunho mesmo sem fotos cloud ainda
+}
+
+export async function fetchCloudDraft(
+  adminPassword: string,
+): Promise<{ content: SiteContent | null; error?: string }> {
+  if (!isCloudEnabled() || !supabase) return { content: null }
+
+  const { data, error } = await supabase.rpc('get_site_content_draft', {
+    admin_password: adminPassword,
+  })
+
+  if (error) {
+    // Função ainda não criada no Supabase
+    if (error.message.toLowerCase().includes('function') || error.code === 'PGRST202') {
+      return {
+        content: null,
+        error: 'Rascunho na nuvem ainda não configurado. Execute supabase/site-content-draft.sql no Supabase.',
+      }
+    }
+    return { content: null, error: error.message }
+  }
+
+  if (data == null || typeof data !== 'object' || Object.keys(data).length === 0) {
+    return { content: null }
+  }
+
+  if (!isDraftContentUseful(data)) {
+    return { content: null }
+  }
+
+  return { content: normalizeSiteContent(data) }
+}
+
+export async function saveCloudDraft(
+  content: SiteContent,
+  adminPassword: string,
+): Promise<SaveCloudResult> {
+  if (!isCloudEnabled() || !supabase) {
+    return { ok: false, error: 'Supabase não configurado.' }
+  }
+
+  const { data, error } = await supabase.rpc('save_site_content_draft', {
+    content: normalizeSiteContent(content),
+    admin_password: adminPassword,
+  })
+
+  if (error) {
+    if (error.message.toLowerCase().includes('function') || error.code === 'PGRST202') {
+      return {
+        ok: false,
+        error: 'Rascunho na nuvem ainda não configurado. Execute supabase/site-content-draft.sql no Supabase.',
+      }
+    }
+    return { ok: false, error: error.message }
+  }
+
+  if (data !== true) {
+    return { ok: false, error: 'Senha de admin incorreta ao salvar rascunho na nuvem.' }
+  }
+
+  return { ok: true }
+}
+
+export async function clearCloudDraft(adminPassword: string): Promise<SaveCloudResult> {
+  if (!isCloudEnabled() || !supabase) {
+    return { ok: false, error: 'Supabase não configurado.' }
+  }
+
+  const { data, error } = await supabase.rpc('clear_site_content_draft', {
+    admin_password: adminPassword,
+  })
+
+  if (error) {
+    if (error.message.toLowerCase().includes('function') || error.code === 'PGRST202') {
+      return { ok: true } // sem tabela ainda: nada a limpar
+    }
+    return { ok: false, error: error.message }
+  }
+
+  if (data !== true) {
+    return { ok: false, error: 'Não foi possível limpar o rascunho na nuvem.' }
+  }
+
+  return { ok: true }
+}
+
 export async function saveCloudContent(
   content: SiteContent,
   adminPassword: string,

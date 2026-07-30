@@ -20,7 +20,7 @@ import {
 import { normalizeSiteContent } from '../utils/contentMerge'
 import { cloneContent } from '../utils/contentClone'
 import { collectPropertyImageUrls } from '../utils/storagePaths'
-import { deleteStorageFiles, fetchCloudContent, saveCloudContent } from '../services/contentApi'
+import { deleteStorageFiles, fetchCloudContent, fetchCloudDraft, saveCloudContent, saveCloudDraft, clearCloudDraft } from '../services/contentApi'
 import { getAdminSyncPassword, isAdminSessionActive } from '../config/admin'
 import { isCloudEnabled } from '../lib/supabase'
 import { useAdminAuth } from './AdminAuthContext'
@@ -51,15 +51,16 @@ interface SiteContentContextValue {
   resetToDefaults: () => void
   exportContent: () => string
   undo: () => void
-  saveDraft: () => boolean
+  saveDraft: () => Promise<boolean>
   publishChanges: () => Promise<boolean>
-  discardDraft: () => void
+  discardDraft: () => Promise<void>
   syncNow: () => Promise<void>
   reloadFromCloud: () => Promise<void>
   lastSyncStatus: 'idle' | 'syncing' | 'ok' | 'error' | 'draft'
   lastSyncError: string | null
   isCloudConfigured: boolean
   isLoadingFromCloud: boolean
+  cloudDraftReady: boolean
 }
 
 const SiteContentContext = createContext<SiteContentContextValue | null>(null)
@@ -87,6 +88,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const [lastSyncError, setLastSyncError] = useState<string | null>(null)
   const [isLoadingFromCloud, setIsLoadingFromCloud] = useState(isCloudConfigured)
   const [hasUnpublishedChanges, setHasUnpublishedChanges] = useState(false)
+  const [cloudDraftReady, setCloudDraftReady] = useState(false)
 
   const contentRef = useRef(content)
   const publishedRef = useRef<SiteContent>(cloneDefaultContent())
@@ -95,6 +97,8 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const didHydrateFromCloud = useRef(false)
   const isHydrating = useRef(false)
   const wasAuthenticated = useRef(isAuthenticated)
+  const draftSaveTimer = useRef<number | null>(null)
+  const skipCloudDraftSave = useRef(false)
 
   useEffect(() => {
     contentRef.current = content
@@ -125,6 +129,8 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       setHasUnpublishedChanges(false)
       setLastSyncStatus('ok')
       setLastSyncError(null)
+      saveStoredContent(normalizeSiteContent(next))
+      await clearCloudDraft(getAdminSyncPassword())
       return true
     }
 
@@ -132,6 +138,36 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     setLastSyncError(result.error)
     return false
   }, [])
+
+  const pushDraftToCloud = useCallback(async (next: SiteContent): Promise<boolean> => {
+    if (!isCloudConfigured || !isAdminSessionActive()) return false
+    const result = await saveCloudDraft(next, getAdminSyncPassword())
+    if (!result.ok) {
+      setLastSyncError(result.error)
+      setCloudDraftReady(false)
+      return false
+    }
+    setCloudDraftReady(true)
+    if (lastSyncStatus !== 'syncing') {
+      setLastSyncError(null)
+    }
+    return true
+  }, [isCloudConfigured, lastSyncStatus])
+
+  useEffect(() => {
+    if (!isAuthenticated || !isCloudConfigured) return
+    if (!didHydrateFromCloud.current || isHydrating.current || skipCloudDraftSave.current) return
+    if (contentEquals(content, publishedRef.current)) return
+
+    if (draftSaveTimer.current) window.clearTimeout(draftSaveTimer.current)
+    draftSaveTimer.current = window.setTimeout(() => {
+      void pushDraftToCloud(contentRef.current)
+    }, 1200)
+
+    return () => {
+      if (draftSaveTimer.current) window.clearTimeout(draftSaveTimer.current)
+    }
+  }, [content, isAuthenticated, isCloudConfigured, pushDraftToCloud])
 
   const applyContent = useCallback((next: SiteContent, options?: { recordUndo?: boolean }) => {
     const recordUndo = options?.recordUndo ?? true
@@ -184,15 +220,43 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       publishedRef.current = cloneContent(published)
 
       if (isAdminSessionActive()) {
+        skipCloudDraftSave.current = true
+        const password = getAdminSyncPassword()
+        const { content: cloudDraft, error: draftError } = await fetchCloudDraft(password)
         const local = loadStoredContent()
-        const draft = local ? normalizeSiteContent(local) : published
-        setContent(draft)
-        setHasUnpublishedChanges(!contentEquals(draft, published))
-        setLastSyncStatus(contentEquals(draft, published) ? 'ok' : 'draft')
+        const localDraft = local ? normalizeSiteContent(local) : null
+
+        if (draftError) {
+          setLastSyncError(draftError)
+          setCloudDraftReady(false)
+        } else {
+          setCloudDraftReady(true)
+        }
+
+        let next = published
+        const cloudHasDraft = Boolean(cloudDraft && !contentEquals(cloudDraft, published))
+        const localHasDraft = Boolean(localDraft && !contentEquals(localDraft, published))
+
+        if (cloudHasDraft && cloudDraft) {
+          next = cloudDraft
+        } else if (localHasDraft && localDraft) {
+          next = localDraft
+          const uploaded = await saveCloudDraft(localDraft, password)
+          setCloudDraftReady(uploaded.ok)
+          if (!uploaded.ok) setLastSyncError(uploaded.error)
+          else if (!draftError) setLastSyncError(null)
+        }
+
+        setContent(next)
+        saveStoredContent(next)
+        setHasUnpublishedChanges(!contentEquals(next, published))
+        setLastSyncStatus(contentEquals(next, published) ? 'ok' : 'draft')
+        skipCloudDraftSave.current = false
       } else {
         setContent(published)
         setHasUnpublishedChanges(false)
         setLastSyncStatus('ok')
+        setCloudDraftReady(false)
       }
 
       didHydrateFromCloud.current = true
@@ -338,16 +402,21 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
 
   const exportContent = useCallback(() => JSON.stringify(content, null, 2), [content])
 
-  const saveDraft = useCallback(() => {
-    return saveStoredContent(contentRef.current)
-  }, [])
+  const saveDraft = useCallback(async () => {
+    const next = contentRef.current
+    const localOk = saveStoredContent(next)
+    if (!localOk) return false
+    if (!isCloudConfigured) return true
+    return pushDraftToCloud(next)
+  }, [isCloudConfigured, pushDraftToCloud])
 
   const publishChanges = useCallback(async () => {
     return publishToCloud(contentRef.current)
   }, [publishToCloud])
 
-  const discardDraft = useCallback(() => {
+  const discardDraft = useCallback(async () => {
     skipUndoPush.current = true
+    skipCloudDraftSave.current = true
     const published = cloneContent(publishedRef.current)
     setContent(published)
     saveStoredContent(published)
@@ -355,8 +424,12 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     setLastSyncStatus('ok')
     undoStack.current = []
     setCanUndo(false)
+    if (isCloudConfigured) {
+      await clearCloudDraft(getAdminSyncPassword())
+    }
+    skipCloudDraftSave.current = false
     skipUndoPush.current = false
-  }, [])
+  }, [isCloudConfigured])
 
   const syncNow = useCallback(async () => {
     await publishToCloud(contentRef.current)
@@ -401,6 +474,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       lastSyncError,
       isCloudConfigured,
       isLoadingFromCloud,
+      cloudDraftReady,
     }),
     [
       content,
@@ -429,6 +503,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       lastSyncError,
       isCloudConfigured,
       isLoadingFromCloud,
+      cloudDraftReady,
     ],
   )
 
