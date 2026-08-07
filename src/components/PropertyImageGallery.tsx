@@ -9,31 +9,24 @@ interface PropertyImageGalleryProps {
   type: PropertyType
 }
 
+/** Sempre mostra a foto inteira — nunca corta laterais/topo. */
 function GalleryImage({
   src,
   alt,
-  className = 'object-cover',
-  fit = 'cover',
 }: {
   src: string
   alt: string
-  className?: string
-  fit?: 'cover' | 'contain'
 }) {
   const imgRef = useRef<HTMLImageElement>(null)
   const [failed, setFailed] = useState(false)
 
   useEffect(() => {
     setFailed(false)
-    const img = imgRef.current
-    if (img?.complete && img.naturalWidth > 0) {
-      setFailed(false)
-    }
   }, [src])
 
   if (!src || failed) {
     return (
-      <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400 text-sm">
+      <div className="absolute inset-0 flex items-center justify-center bg-neutral-900 text-gray-400 text-sm">
         Foto indisponível
       </div>
     )
@@ -43,8 +36,8 @@ function GalleryImage({
     <ProtectedImage
       src={src}
       alt={alt}
-      wrapperClassName="absolute inset-0 w-full h-full"
-      className={`w-full h-full ${fit === 'contain' ? 'object-contain' : 'object-cover'} ${className}`}
+      wrapperClassName="absolute inset-0 w-full h-full bg-neutral-900"
+      className="w-full h-full object-contain"
       decoding="async"
       loading="eager"
       onError={() => setFailed(true)}
@@ -163,7 +156,7 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
   return (
     <>
       <div
-        className="relative rounded-site overflow-hidden mb-8 aspect-[16/9] bg-gray-100 group cursor-zoom-in"
+        className="relative rounded-site overflow-hidden mb-8 aspect-[16/9] bg-neutral-900 group cursor-zoom-in"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onClick={() => openGallery(safeIndex)}
@@ -266,21 +259,20 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
           </div>
 
           <div
-            className="relative flex-1 min-h-0 flex items-center justify-center touch-pan-y"
+            className="relative flex-1 min-h-0 flex items-center justify-center px-2 sm:px-10 py-16 sm:py-20"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
             onClick={() => setGalleryOpen(false)}
           >
             <div
-              className="relative w-full h-full max-h-[100dvh]"
+              className="relative w-full h-full"
               onClick={(event) => event.stopPropagation()}
             >
               <GalleryImage
                 key={validImages[lightboxIndex]}
                 src={validImages[lightboxIndex]}
                 alt={`${title} - foto ${lightboxIndex + 1}`}
-                fit="contain"
               />
             </div>
 
