@@ -7,7 +7,7 @@ type SocialLinksProps = {
 
 export default function SocialLinks({ variant = 'light' }: SocialLinksProps) {
   const dark = variant === 'dark'
-  const { site } = useSiteContent()
+  const { publicSite: site } = useSiteContent()
 
   const socials = [
     { label: 'Instagram', href: site.social.instagram, Icon: InstagramIcon },

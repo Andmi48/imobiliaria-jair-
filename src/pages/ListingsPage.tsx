@@ -14,10 +14,10 @@ export default function ListingsPage({ type }: ListingsPageProps) {
   const initialQuery = searchParams.get('q') ?? ''
   const initialCategory = searchParams.get('categoria') ?? ''
   const [query, setQuery] = useState(initialQuery)
-  const { properties } = useSiteContent()
+  const { publicProperties } = useSiteContent()
 
   const filtered = useMemo(() => {
-    let result = properties.filter((p) => p.type === type)
+    let result = publicProperties.filter((p) => p.type === type)
 
     if (initialCategory) {
       result = result.filter((p) => p.category === initialCategory)
@@ -34,7 +34,7 @@ export default function ListingsPage({ type }: ListingsPageProps) {
     }
 
     return sortProperties(result)
-  }, [type, query, initialCategory, properties])
+  }, [type, query, initialCategory, publicProperties])
 
   const title = type === 'Venda' ? 'Imóveis à venda' : 'Imóveis para alugar'
   const subtitle =

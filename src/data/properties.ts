@@ -1,6 +1,36 @@
 export type PropertyType = string
 export type PropertyCategory = string
 
+/** Tipo de garantia / entrada para locação */
+export type DepositType =
+  | 'calcao'
+  | 'seguro_fianca'
+  | 'titulo_capitalizacao'
+  | 'fiador'
+  | 'outros'
+
+export const DEPOSIT_TYPE_OPTIONS: { value: DepositType; label: string }[] = [
+  { value: 'calcao', label: 'Calção' },
+  { value: 'seguro_fianca', label: 'Seguro fiança' },
+  { value: 'titulo_capitalizacao', label: 'Título de capitalização' },
+  { value: 'fiador', label: 'Fiador' },
+  { value: 'outros', label: 'Outros' },
+]
+
+export function getDepositTypeLabel(value?: string): string {
+  if (!value) return ''
+  return DEPOSIT_TYPE_OPTIONS.find((item) => item.value === value)?.label ?? value
+}
+
+/** Imóvel visível no site público (visitantes). Sem flag = legado = publicado. */
+export function isPropertyPublished(property: Property): boolean {
+  return property.isPublished !== false
+}
+
+export function getPublishedProperties(list: Property[]): Property[] {
+  return list.filter(isPropertyPublished)
+}
+
 export interface Property {
   id: number
   title: string
@@ -22,6 +52,11 @@ export interface Property {
   amenities: string[]
   featured?: boolean
   isNew?: boolean
+  /**
+   * Se false, o imóvel não aparece no site público (mesmo após “Publicar no site”).
+   * Imóveis antigos sem o campo continuam publicados.
+   */
+  isPublished?: boolean
   /** Valor anterior — se maior que priceValue, exibe redução no banner */
   previousPriceValue?: number
   /** Texto de destaque no banner (ex: "Preço reduzido!") */
@@ -32,6 +67,12 @@ export interface Property {
   displayOrder?: number
   /** Endereço/ponto de referência para o mapa (opcional) */
   mapAddress?: string
+  /** Quantidade de meses de calção / caução pedida (ex: 1, 2, 3) */
+  depositMonths?: number
+  /** Tipo de garantia: calção, seguro fiança, etc. */
+  depositType?: DepositType | string
+  /** Detalhe livre quando depositType = outros (ou observação) */
+  depositNote?: string
 }
 
 /** Ordena por posição definida no admin (displayOrder); sem ordem vai ao fim. */

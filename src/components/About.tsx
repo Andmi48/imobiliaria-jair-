@@ -2,7 +2,7 @@ import { useSiteContent } from '../context/SiteContentContext'
 import ProtectedImage from './ProtectedImage'
 
 export default function About() {
-  const { about } = useSiteContent()
+  const { publicAbout: about } = useSiteContent()
 
   return (
     <section id="sobre" className="py-24 bg-gray-50">

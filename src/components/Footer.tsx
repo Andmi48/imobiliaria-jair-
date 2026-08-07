@@ -24,7 +24,7 @@ function FooterColumn({ title, children, className = '' }: { title?: string; chi
 }
 
 export default function Footer() {
-  const { site } = useSiteContent()
+  const { publicSite: site } = useSiteContent()
 
   return (
     <footer className="bg-gray-900 text-gray-400">

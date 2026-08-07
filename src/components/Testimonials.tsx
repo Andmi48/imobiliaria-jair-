@@ -2,7 +2,7 @@ import { Quote, Star } from 'lucide-react'
 import { useSiteContent } from '../context/SiteContentContext'
 
 export default function Testimonials() {
-  const { testimonials } = useSiteContent()
+  const { publicTestimonials: testimonials } = useSiteContent()
 
   if (testimonials.length === 0) return null
 

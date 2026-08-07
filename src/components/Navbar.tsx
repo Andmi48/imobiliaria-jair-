@@ -12,7 +12,7 @@ const navLinks = [
 ]
 
 export default function Navbar() {
-  const { site, isReady } = useSiteContent()
+  const { publicSite: site, isReady } = useSiteContent()
   const [isOpen, setIsOpen] = useState(false)
   const [failedLogoSrc, setFailedLogoSrc] = useState('')
   const location = useLocation()

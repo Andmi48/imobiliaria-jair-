@@ -22,7 +22,7 @@ export default function AdminPublishBar() {
   if (isLoadingFromCloud || !isReady) return null
 
   const handlePublish = async () => {
-    if (!confirm('Publicar todas as alterações no site? Os visitantes verão esta versão.')) return
+    if (!confirm('Publicar alterações no site?\n\nVisitantes verão esta versão.\nImóveis com “Publicar este imóvel” desmarcado continuam ocultos.')) return
     setPublishing(true)
     try {
       const ok = await publishChanges()
@@ -74,8 +74,9 @@ export default function AdminPublishBar() {
               Alterações em rascunho — ainda não publicadas
             </p>
             <p className="text-amber-800 mt-1">
-              O rascunho é salvo na nuvem automaticamente. Em outro computador, entre no admin para continuar.
-              Clique em <strong>Publicar no site</strong> quando quiser que os visitantes vejam.
+              O rascunho é salvo na nuvem automaticamente. Visitantes <strong>não</strong> veem rascunho —
+              só a versão publicada. Imóveis com “Publicar este imóvel” desmarcado também ficam ocultos.
+              Clique em <strong>Publicar no site</strong> quando quiser liberar as alterações.
             </p>
             {isCloudConfigured && (
               <p className="text-amber-700 mt-1 text-xs">

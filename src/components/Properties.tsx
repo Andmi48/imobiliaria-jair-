@@ -128,9 +128,9 @@ function TypeSection({
 }
 
 export default function Properties() {
-  const { properties } = useSiteContent()
+  const { publicProperties } = useSiteContent()
 
-  const sorted = sortProperties(properties)
+  const sorted = sortProperties(publicProperties)
   const mainFeatured = sorted.find((p) => p.mainFeatured)
 
   const onHome = sorted.filter((p) => (p.featured || p.mainFeatured) && p.id !== mainFeatured?.id)

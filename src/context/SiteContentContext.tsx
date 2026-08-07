@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import type { Property } from '../data/properties'
+import { getPublishedProperties, type Property } from '../data/properties'
 import type { AboutContent, HeroContent, PropertyOptionsConfig, SiteConfig, SiteContent, Testimonial } from '../types/content'
 import { defaultContent } from '../data/defaultContent'
 import {
@@ -28,17 +28,33 @@ import { useAdminAuth } from './AdminAuthContext'
 const MAX_UNDO = 30
 
 interface SiteContentContextValue {
+  /** Conteúdo de trabalho (rascunho no admin). */
   content: SiteContent
+  /**
+   * Conteúdo já publicado na nuvem — o que visitantes devem ver.
+   * Nunca use o rascunho do admin nas páginas públicas.
+   */
+  publishedContent: SiteContent
   site: SiteConfig
   properties: Property[]
+  /** Imóveis visíveis no site público (versão publicada + flag isPublished). */
+  publicProperties: Property[]
   propertyOptions: PropertyOptionsConfig
   hero: HeroContent
   about: AboutContent
   testimonials: Testimonial[]
+  /** Dados públicos (site, hero, etc.) sempre da versão publicada. */
+  publicSite: SiteConfig
+  publicHero: HeroContent
+  publicAbout: AboutContent
+  publicTestimonials: Testimonial[]
+  publicPropertyOptions: PropertyOptionsConfig
   isReady: boolean
   canUndo: boolean
   hasUnpublishedChanges: boolean
   getPropertyById: (id: number) => Property | undefined
+  /** Busca imóvel apenas na versão publicada e liberada para o site. */
+  getPublicPropertyById: (id: number) => Property | undefined
   updateSite: (site: SiteConfig | ((current: SiteConfig) => SiteConfig)) => void
   updateHero: (hero: HeroContent) => void
   updateAbout: (about: AboutContent) => void
@@ -82,6 +98,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const isCloudConfigured = isCloudEnabled()
 
   const [content, setContent] = useState<SiteContent>(getBootstrapContent)
+  const [publishedContent, setPublishedContent] = useState<SiteContent>(() => cloneDefaultContent())
   const [isReady, setIsReady] = useState(!isCloudConfigured)
   const [canUndo, setCanUndo] = useState(false)
   const [lastSyncStatus, setLastSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'error' | 'draft'>('idle')
@@ -99,6 +116,12 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const wasAuthenticated = useRef(isAuthenticated)
   const draftSaveTimer = useRef<number | null>(null)
   const skipCloudDraftSave = useRef(false)
+
+  const setPublishedSnapshot = useCallback((next: SiteContent) => {
+    const normalized = cloneContent(normalizeSiteContent(next))
+    publishedRef.current = normalized
+    setPublishedContent(normalized)
+  }, [])
 
   useEffect(() => {
     contentRef.current = content
@@ -125,7 +148,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
 
     const result = await saveCloudContent(next, getAdminSyncPassword())
     if (result.ok) {
-      publishedRef.current = cloneContent(normalizeSiteContent(next))
+      setPublishedSnapshot(next)
       setHasUnpublishedChanges(false)
       setLastSyncStatus('ok')
       setLastSyncError(null)
@@ -137,7 +160,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     setLastSyncStatus('error')
     setLastSyncError(result.error)
     return false
-  }, [])
+  }, [setPublishedSnapshot])
 
   const pushDraftToCloud = useCallback(async (next: SiteContent): Promise<boolean> => {
     if (!isCloudConfigured || !isAdminSessionActive()) return false
@@ -192,7 +215,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     skipUndoPush.current = true
 
     if (!isCloudConfigured) {
-      publishedRef.current = cloneContent(contentRef.current)
+      setPublishedSnapshot(contentRef.current)
       setIsReady(true)
       setIsLoadingFromCloud(false)
       skipUndoPush.current = false
@@ -212,12 +235,12 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         )
         const bootstrap = getBootstrapContent()
         setContent(bootstrap)
-        publishedRef.current = cloneContent(bootstrap)
+        setPublishedSnapshot(bootstrap)
         return
       }
 
       const published = cloud ? normalizeSiteContent(cloud) : getBootstrapContent()
-      publishedRef.current = cloneContent(published)
+      setPublishedSnapshot(published)
 
       if (isAdminSessionActive()) {
         skipCloudDraftSave.current = true
@@ -253,6 +276,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
         setLastSyncStatus(contentEquals(next, published) ? 'ok' : 'draft')
         skipCloudDraftSave.current = false
       } else {
+        // Visitantes (e admin deslogado): SEMPRE só a versão publicada.
         setContent(published)
         setHasUnpublishedChanges(false)
         setLastSyncStatus('ok')
@@ -268,7 +292,7 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
       skipUndoPush.current = false
       isHydrating.current = false
     }
-  }, [isCloudConfigured])
+  }, [isCloudConfigured, setPublishedSnapshot])
 
   useEffect(() => {
     void hydrateFromCloud()
@@ -277,6 +301,18 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isAuthenticated && !wasAuthenticated.current) {
       void hydrateFromCloud()
+    }
+    // Ao sair do admin, força o site a voltar à versão publicada (sem rascunho).
+    if (!isAuthenticated && wasAuthenticated.current) {
+      skipUndoPush.current = true
+      skipCloudDraftSave.current = true
+      const published = cloneContent(publishedRef.current)
+      setContent(published)
+      setHasUnpublishedChanges(false)
+      setLastSyncStatus('ok')
+      setCloudDraftReady(false)
+      skipCloudDraftSave.current = false
+      skipUndoPush.current = false
     }
     wasAuthenticated.current = isAuthenticated
   }, [isAuthenticated, hydrateFromCloud])
@@ -304,6 +340,16 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const getPropertyById = useCallback(
     (id: number) => content.properties.find((property) => property.id === id),
     [content.properties],
+  )
+
+  const publicProperties = useMemo(
+    () => getPublishedProperties(publishedContent.properties),
+    [publishedContent.properties],
+  )
+
+  const getPublicPropertyById = useCallback(
+    (id: number) => publicProperties.find((property) => property.id === id),
+    [publicProperties],
   )
 
   const updateSite = useCallback(
@@ -443,16 +489,24 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       content,
+      publishedContent,
       site: content.site,
       properties: content.properties,
+      publicProperties,
       propertyOptions: content.propertyOptions,
       hero: content.hero,
       about: content.about,
       testimonials: content.testimonials,
+      publicSite: publishedContent.site,
+      publicHero: publishedContent.hero,
+      publicAbout: publishedContent.about,
+      publicTestimonials: publishedContent.testimonials,
+      publicPropertyOptions: publishedContent.propertyOptions,
       isReady,
       canUndo,
       hasUnpublishedChanges,
       getPropertyById,
+      getPublicPropertyById,
       updateSite,
       updateHero,
       updateAbout,
@@ -478,10 +532,13 @@ export function SiteContentProvider({ children }: { children: ReactNode }) {
     }),
     [
       content,
+      publishedContent,
+      publicProperties,
       isReady,
       canUndo,
       hasUnpublishedChanges,
       getPropertyById,
+      getPublicPropertyById,
       updateSite,
       updateHero,
       updateAbout,

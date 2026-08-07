@@ -1,15 +1,17 @@
 import { Link, useParams, Navigate } from 'react-router-dom'
-import { Bed, Bath, Maximize, MapPin, Phone, Car, ArrowLeft } from 'lucide-react'
+import { Bed, Bath, Maximize, MapPin, Phone, Car, ArrowLeft, Shield } from 'lucide-react'
 import { WhatsAppIcon } from '../components/SocialIcons'
 import { buildPropertyWhatsAppUrl } from '../utils/whatsapp'
 import PropertyImageGallery from '../components/PropertyImageGallery'
 import PropertyMap from '../components/PropertyMap'
 import { useSiteContent } from '../context/SiteContentContext'
+import { getDepositTypeLabel } from '../data/properties'
 
 export default function PropertyDetailPage() {
   const { id } = useParams()
-  const { getPropertyById, site } = useSiteContent()
-  const property = getPropertyById(Number(id))
+  const { getPublicPropertyById, publicSite } = useSiteContent()
+  const property = getPublicPropertyById(Number(id))
+  const site = publicSite
 
   if (!property) {
     return <Navigate to="/" replace />
@@ -19,6 +21,11 @@ export default function PropertyDetailPage() {
     (src) => src?.trim(),
   )
   const backLink = property.type === 'Venda' ? '/venda' : '/aluguel'
+  const depositLabel = getDepositTypeLabel(property.depositType)
+  const hasDepositInfo =
+    (property.depositMonths != null && property.depositMonths > 0) ||
+    Boolean(depositLabel) ||
+    Boolean(property.depositNote?.trim())
 
   return (
     <div className="pt-20 pb-24 bg-white min-h-screen">
@@ -95,6 +102,36 @@ export default function PropertyDetailPage() {
             </div>
           )}
         </div>
+
+        {hasDepositInfo && (
+          <div className="mb-10 rounded-xl border border-blue-100 bg-blue-50/60 p-5">
+            <div className="flex items-start gap-3">
+              <Shield className="w-5 h-5 text-brand-blue mt-0.5 shrink-0" />
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 mb-2">Garantia / entrada</h2>
+                <ul className="space-y-1 text-gray-700 text-sm sm:text-base">
+                  {depositLabel && (
+                    <li>
+                      <span className="font-medium">Tipo:</span> {depositLabel}
+                    </li>
+                  )}
+                  {property.depositMonths != null && property.depositMonths > 0 && (
+                    <li>
+                      <span className="font-medium">Calção:</span>{' '}
+                      {property.depositMonths}{' '}
+                      {property.depositMonths === 1 ? 'mês' : 'meses'}
+                    </li>
+                  )}
+                  {property.depositNote?.trim() && (
+                    <li>
+                      <span className="font-medium">Obs.:</span> {property.depositNote.trim()}
+                    </li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="mb-10">
           <h2 className="text-xl font-bold text-gray-900 mb-3">Descrição</h2>

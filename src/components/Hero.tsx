@@ -8,7 +8,7 @@ export default function Hero() {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('')
   const navigate = useNavigate()
-  const { hero, propertyOptions, site } = useSiteContent()
+  const { publicHero: hero, publicPropertyOptions: propertyOptions, publicSite: site } = useSiteContent()
 
   const handleSearch = () => {
     const path = searchType === 'comprar' ? '/venda' : '/aluguel'

@@ -2,7 +2,7 @@ import { WhatsAppIcon } from './SocialIcons'
 import { useSiteContent } from '../context/SiteContentContext'
 
 export default function WhatsAppButton() {
-  const { site } = useSiteContent()
+  const { publicSite: site } = useSiteContent()
   const message = encodeURIComponent('Olá! Gostaria de mais informações sobre imóveis.')
 
   return (

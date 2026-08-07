@@ -8,6 +8,16 @@ export type AdminUpdateEntry = {
 /** Histórico de atualizações — adicione a nova versão sempre no topo. */
 export const ADMIN_UPDATES: AdminUpdateEntry[] = [
   {
+    version: '2.5.8',
+    date: '2026-08-07',
+    title: 'Rascunho vs site público e garantia/calção',
+    items: [
+      'Site público nunca mostra rascunho do admin (mesmo logado no Chrome)',
+      'Novo imóvel nasce como rascunho — marque “Publicar este imóvel” para liberar',
+      'Campos de calção (meses) e tipo de garantia (calção, seguro fiança, etc.)',
+    ],
+  },
+  {
     version: '2.5.7',
     date: '2026-07-30',
     title: 'Rascunho do admin na nuvem',

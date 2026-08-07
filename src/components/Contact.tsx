@@ -11,7 +11,7 @@ const interestLabels: Record<InterestType, string> = {
 }
 
 export default function Contact() {
-  const { site } = useSiteContent()
+  const { publicSite: site } = useSiteContent()
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',

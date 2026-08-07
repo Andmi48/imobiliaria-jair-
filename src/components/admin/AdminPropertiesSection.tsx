@@ -4,7 +4,7 @@ import { Plus, Pencil, Trash2, Star, Search, Share2 } from 'lucide-react'
 
 import type { Property } from '../../data/properties'
 
-import { sortProperties } from '../../data/properties'
+import { DEPOSIT_TYPE_OPTIONS, getDepositTypeLabel, sortProperties } from '../../data/properties'
 
 import { useSiteContent } from '../../context/SiteContentContext'
 
@@ -69,6 +69,14 @@ const emptyProperty = (defaults: {
   amenities: [],
 
   featured: true,
+
+  isPublished: false,
+
+  depositMonths: undefined,
+
+  depositType: undefined,
+
+  depositNote: '',
 
 })
 
@@ -792,6 +800,114 @@ export default function AdminPropertiesSection() {
 
 
 
+        <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 space-y-3">
+
+          <label className="flex items-start gap-3 text-sm text-gray-800">
+
+            <input
+
+              type="checkbox"
+
+              className="mt-1"
+
+              checked={editing.isPublished !== false}
+
+              onChange={(e) => updateField('isPublished', e.target.checked)}
+
+            />
+
+            <span>
+
+              <strong className="block">Publicar este imóvel no site</strong>
+
+              <span className="text-gray-600">Desmarcado = rascunho. Visitantes só veem depois que marcar isto e clicar em “Publicar no site”.</span>
+
+            </span>
+
+          </label>
+
+        </div>
+
+
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+          <div>
+
+            <label className={adminLabelClass}>Tipo de garantia / entrada</label>
+
+            <select
+
+              className={adminInputClass}
+
+              value={editing.depositType ?? ''}
+
+              onChange={(e) => updateField('depositType', e.target.value || undefined)}
+
+            >
+
+              <option value="">Não informado</option>
+
+              {DEPOSIT_TYPE_OPTIONS.map((opt) => (
+
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+
+              ))}
+
+            </select>
+
+          </div>
+
+          <div>
+
+            <label className={adminLabelClass}>Calção (meses)</label>
+
+            <input
+
+              type="number"
+
+              min={0}
+
+              className={adminInputClass}
+
+              value={editing.depositMonths ?? ''}
+
+              onChange={(e) => {
+
+                const raw = e.target.value
+
+                updateField('depositMonths', raw === '' ? undefined : Number(raw) || 0)
+
+              }}
+
+              placeholder="Ex: 1, 2 ou 3"
+
+            />
+
+          </div>
+
+          <div>
+
+            <label className={adminLabelClass}>Obs. da garantia</label>
+
+            <input
+
+              className={adminInputClass}
+
+              value={editing.depositNote ?? ''}
+
+              onChange={(e) => updateField('depositNote', e.target.value)}
+
+              placeholder="Detalhe opcional"
+
+            />
+
+          </div>
+
+        </div>
+
+
+
         <div className="flex flex-wrap gap-4">
 
           <label className="flex items-center gap-2 text-sm text-gray-700">
@@ -1127,6 +1243,16 @@ export default function AdminPropertiesSection() {
                       <p className="font-medium text-gray-900">{property.title}</p>
 
                       <p className="text-gray-500">{property.location}</p>
+
+                      <p className={`text-xs mt-1 font-semibold ${property.isPublished === false ? 'text-amber-700' : 'text-green-700'}`}>
+
+                        {property.isPublished === false ? 'Rascunho (não aparece no site)' : 'No ar / liberado'}
+
+                        {property.depositType ? ` · ${getDepositTypeLabel(property.depositType)}` : ''}
+
+                        {property.depositMonths != null && property.depositMonths > 0 ? ` · ${property.depositMonths} mês(es) calção` : ''}
+
+                      </p>
 
                     </div>
 
