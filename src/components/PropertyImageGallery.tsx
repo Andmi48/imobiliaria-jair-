@@ -53,12 +53,16 @@ function GalleryImage({
   )
 }
 
+const SWIPE_THRESHOLD = 50
+
 export default function PropertyImageGallery({ images, title, type }: PropertyImageGalleryProps) {
   const validImages = images.filter((src) => src?.trim())
   const [index, setIndex] = useState(0)
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [paused, setPaused] = useState(false)
+  const touchStartX = useRef<number | null>(null)
+  const touchDeltaX = useRef(0)
 
   const safeIndex = validImages.length > 0 ? index % validImages.length : 0
   const currentSrc = validImages[safeIndex] ?? ''
@@ -71,6 +75,16 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
   const prev = useCallback(() => {
     if (validImages.length <= 1) return
     setIndex((i) => (i - 1 + validImages.length) % validImages.length)
+  }, [validImages.length])
+
+  const lightboxNext = useCallback(() => {
+    if (validImages.length <= 1) return
+    setLightboxIndex((i) => (i + 1) % validImages.length)
+  }, [validImages.length])
+
+  const lightboxPrev = useCallback(() => {
+    if (validImages.length <= 1) return
+    setLightboxIndex((i) => (i - 1 + validImages.length) % validImages.length)
   }, [validImages.length])
 
   useEffect(() => {
@@ -101,9 +115,41 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
     if (index >= validImages.length) setIndex(0)
   }, [index, validImages.length])
 
-  const openGallery = () => {
-    setLightboxIndex(safeIndex)
+  useEffect(() => {
+    if (!galleryOpen) return
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setGalleryOpen(false)
+      if (event.key === 'ArrowRight') lightboxNext()
+      if (event.key === 'ArrowLeft') lightboxPrev()
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [galleryOpen, lightboxNext, lightboxPrev])
+
+  const openGallery = (atIndex = safeIndex) => {
+    setLightboxIndex(atIndex)
     setGalleryOpen(true)
+  }
+
+  const onTouchStart = (event: React.TouchEvent) => {
+    touchStartX.current = event.touches[0]?.clientX ?? null
+    touchDeltaX.current = 0
+  }
+
+  const onTouchMove = (event: React.TouchEvent) => {
+    if (touchStartX.current == null) return
+    touchDeltaX.current = (event.touches[0]?.clientX ?? 0) - touchStartX.current
+  }
+
+  const onTouchEnd = () => {
+    if (Math.abs(touchDeltaX.current) >= SWIPE_THRESHOLD) {
+      if (touchDeltaX.current < 0) lightboxNext()
+      else lightboxPrev()
+    }
+    touchStartX.current = null
+    touchDeltaX.current = 0
   }
 
   if (validImages.length === 0) {
@@ -117,9 +163,19 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
   return (
     <>
       <div
-        className="relative rounded-site overflow-hidden mb-8 aspect-[16/9] bg-gray-100 group"
+        className="relative rounded-site overflow-hidden mb-8 aspect-[16/9] bg-gray-100 group cursor-zoom-in"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
+        onClick={() => openGallery(safeIndex)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            openGallery(safeIndex)
+          }
+        }}
+        aria-label="Ampliar fotos do imóvel"
       >
         <GalleryImage
           key={currentSrc}
@@ -131,31 +187,34 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
           <>
             <button
               type="button"
-              onClick={prev}
-              className="absolute left-4 top-1/2 z-20 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(event) => {
+                event.stopPropagation()
+                prev()
+              }}
+              className="absolute left-3 top-1/2 z-20 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
               aria-label="Foto anterior"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               type="button"
-              onClick={next}
-              className="absolute right-4 top-1/2 z-20 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(event) => {
+                event.stopPropagation()
+                next()
+              }}
+              className="absolute right-3 top-1/2 z-20 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
               aria-label="Próxima foto"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
 
-            <div className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 flex gap-2">
+            <div className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 flex gap-2 pointer-events-none">
               {validImages.map((_, i) => (
-                <button
+                <span
                   key={i}
-                  type="button"
-                  onClick={() => setIndex(i)}
                   className={`h-1.5 rounded-full transition-all duration-500 ${
                     i === safeIndex ? 'w-8 bg-white' : 'w-1.5 bg-white/50'
                   }`}
-                  aria-label={`Ir para foto ${i + 1}`}
                 />
               ))}
             </div>
@@ -163,7 +222,7 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
         )}
 
         <span
-          className={`absolute top-4 left-4 z-20 px-4 py-1.5 rounded-full text-sm font-bold text-white ${
+          className={`absolute top-4 left-4 z-20 px-4 py-1.5 rounded-full text-sm font-bold text-white pointer-events-none ${
             type === 'Venda' ? 'bg-brand-blue' : 'bg-brand-red'
           }`}
         >
@@ -173,91 +232,103 @@ export default function PropertyImageGallery({ images, title, type }: PropertyIm
         {validImages.length > 1 && (
           <button
             type="button"
-            onClick={openGallery}
-            className="absolute bottom-4 right-4 z-20 flex items-center gap-2 bg-white/95 hover:bg-white text-gray-800 px-4 py-2 rounded-full text-sm font-semibold shadow-lg transition-all hover:scale-105"
+            onClick={(event) => {
+              event.stopPropagation()
+              openGallery(safeIndex)
+            }}
+            className="absolute bottom-4 right-4 z-20 flex items-center gap-2 bg-white/95 hover:bg-white text-gray-800 px-3 py-2 sm:px-4 rounded-full text-xs sm:text-sm font-semibold shadow-lg transition-all"
           >
             <Grid3X3 className="w-4 h-4" />
-            Ver todas ({validImages.length})
+            {validImages.length} fotos
           </button>
         )}
       </div>
 
       {galleryOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-8">
-          <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-md"
-            onClick={() => setGalleryOpen(false)}
-            aria-hidden
-          />
-
-          <div className="relative w-full max-w-6xl max-h-[90vh]">
+        <div
+          className="fixed inset-0 z-[200] bg-black flex flex-col"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Galeria de fotos ampliada"
+        >
+          <div className="absolute top-0 inset-x-0 z-30 flex items-center justify-between px-3 sm:px-5 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 bg-gradient-to-b from-black/70 to-transparent">
+            <p className="text-white/90 text-sm font-medium tabular-nums">
+              {lightboxIndex + 1} / {validImages.length}
+            </p>
             <button
               type="button"
               onClick={() => setGalleryOpen(false)}
-              className="absolute -top-12 right-0 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors z-10"
+              className="w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-white"
               aria-label="Fechar galeria"
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" />
             </button>
+          </div>
 
-            <div className="bg-white rounded-site overflow-hidden shadow-2xl">
-              <div className="relative aspect-[16/10] bg-gray-900">
-                <GalleryImage
-                  key={validImages[lightboxIndex]}
-                  src={validImages[lightboxIndex]}
-                  alt={`${title} - foto ${lightboxIndex + 1}`}
-                  fit="contain"
-                />
-                {validImages.length > 1 && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setLightboxIndex((i) => (i - 1 + validImages.length) % validImages.length)
-                      }
-                      className="absolute left-4 top-1/2 z-20 -translate-y-1/2 w-11 h-11 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white"
-                      aria-label="Foto anterior"
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLightboxIndex((i) => (i + 1) % validImages.length)}
-                      className="absolute right-4 top-1/2 z-20 -translate-y-1/2 w-11 h-11 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:bg-white"
-                      aria-label="Próxima foto"
-                    >
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
-                  </>
-                )}
-                <span className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 text-white/80 text-sm bg-black/40 px-3 py-1 rounded-full">
-                  {lightboxIndex + 1} / {validImages.length}
-                </span>
-              </div>
+          <div
+            className="relative flex-1 min-h-0 flex items-center justify-center touch-pan-y"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            onClick={() => setGalleryOpen(false)}
+          >
+            <div
+              className="relative w-full h-full max-h-[100dvh]"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <GalleryImage
+                key={validImages[lightboxIndex]}
+                src={validImages[lightboxIndex]}
+                alt={`${title} - foto ${lightboxIndex + 1}`}
+                fit="contain"
+              />
+            </div>
 
-              <div className="p-4 grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-32 overflow-y-auto">
-                {validImages.map((src, i) => (
-                  <button
-                    key={`${src}-${i}`}
-                    type="button"
-                    onClick={() => setLightboxIndex(i)}
-                    className={`relative aspect-square rounded-lg overflow-hidden transition-all duration-300 ${
-                      i === lightboxIndex
-                        ? 'ring-2 ring-brand-blue scale-105'
-                        : 'opacity-70 hover:opacity-100'
+            {validImages.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    lightboxPrev()
+                  }}
+                  className="absolute left-2 sm:left-4 top-1/2 z-30 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 bg-white/90 rounded-full flex items-center justify-center shadow-lg"
+                  aria-label="Foto anterior"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    lightboxNext()
+                  }}
+                  className="absolute right-2 sm:right-4 top-1/2 z-30 -translate-y-1/2 w-11 h-11 sm:w-12 sm:h-12 bg-white/90 rounded-full flex items-center justify-center shadow-lg"
+                  aria-label="Próxima foto"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              </>
+            )}
+          </div>
+
+          {validImages.length > 1 && (
+            <div className="absolute bottom-0 inset-x-0 z-30 pointer-events-none pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-8 bg-gradient-to-t from-black/60 to-transparent">
+              <div className="flex justify-center gap-1.5 px-4">
+                {validImages.map((_, i) => (
+                  <span
+                    key={i}
+                    className={`h-1.5 rounded-full transition-all ${
+                      i === lightboxIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/40'
                     }`}
-                  >
-                    <img
-                      src={src}
-                      alt=""
-                      className="w-full h-full object-cover pointer-events-none select-none"
-                      draggable={false}
-                    />
-                  </button>
+                  />
                 ))}
               </div>
+              <p className="mt-3 text-center text-white/70 text-xs sm:hidden">
+                Deslize para o lado para ver mais fotos
+              </p>
             </div>
-          </div>
+          )}
         </div>
       )}
     </>
