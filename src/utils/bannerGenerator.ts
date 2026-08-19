@@ -92,9 +92,10 @@ export const DEFAULT_BANNER_CUSTOMIZATION: BannerCustomization = {
 
 const W = 1080
 const H = 1080
-const CONTACT_BAR_H = 98
+const CONTACT_BAR_H = 88
 const PHOTO_GAP = 8
-const STRIP_H = 108
+const STRIP_H = 112
+const PANEL_PAD = 32
 
 /** Consultores — espelha o rodapé do site. */
 const BROKERS = [
@@ -103,16 +104,16 @@ const BROKERS = [
 ] as const
 
 const FONT = {
-  title: 'bold 36px Inter, Arial, sans-serif',
-  titleSm: 'bold 30px Inter, Arial, sans-serif',
-  location: '500 19px Inter, Arial, sans-serif',
-  specs: '600 19px Inter, Arial, sans-serif',
-  feature: '500 18px Inter, Arial, sans-serif',
-  priceLabel: '600 16px Inter, Arial, sans-serif',
-  contactBroker: '600 15px Inter, Arial, sans-serif',
-  contactCreci: '500 14px Inter, Arial, sans-serif',
-  contactPhone: '500 15px Inter, Arial, sans-serif',
-  badge: 'bold 17px Inter, Arial, sans-serif',
+  title: 'bold 34px Inter, Arial, sans-serif',
+  titleSm: 'bold 28px Inter, Arial, sans-serif',
+  location: '500 18px Inter, Arial, sans-serif',
+  specs: '600 18px Inter, Arial, sans-serif',
+  feature: '500 17px Inter, Arial, sans-serif',
+  priceLabel: '600 11px Inter, Arial, sans-serif',
+  contactBroker: '600 14px Inter, Arial, sans-serif',
+  contactCreci: '500 13px Inter, Arial, sans-serif',
+  contactPhone: '500 14px Inter, Arial, sans-serif',
+  badge: 'bold 16px Inter, Arial, sans-serif',
   logoFallback: 'bold 20px Inter, Arial, sans-serif',
 }
 
@@ -654,7 +655,7 @@ function drawContactBar(
   const textColor = dark ? 'rgba(255,255,255,0.92)' : '#0f172a'
   const mutedColor = dark ? 'rgba(255,255,255,0.55)' : '#64748b'
 
-  let lineY = y + 24
+  let lineY = y + 20
   BROKERS.forEach((broker) => {
     ctx.fillStyle = textColor
     ctx.font = FONT.contactBroker
@@ -662,77 +663,95 @@ function drawContactBar(
     const nameW = ctx.measureText(broker.name).width
     ctx.fillStyle = mutedColor
     ctx.font = FONT.contactCreci
-    ctx.fillText(`CRECI ${broker.creci}`, pad + nameW + 10, lineY)
-    lineY += 22
+    ctx.fillText(`CRECI ${broker.creci}`, pad + nameW + 8, lineY)
+    lineY += 20
   })
 
-  lineY += 4
   ctx.fillStyle = textColor
   ctx.font = FONT.contactPhone
   const phones: string[] = []
   if (landline) phones.push(landline)
   if (mobile) phones.push(mobile)
-  ctx.fillText(phones.join('   ·   '), pad, lineY)
+  ctx.fillText(phones.join('   ·   '), pad, lineY + 2)
 }
 
 
 function fitPriceFont(ctx: CanvasRenderingContext2D, price: string, maxInnerW: number): number {
-  let size = 34
-  while (size >= 24) {
+  let size = 38
+  while (size >= 26) {
     ctx.font = `bold ${size}px Inter, Arial, sans-serif`
     if (ctx.measureText(price).width <= maxInnerW) return size
     size -= 2
   }
-  return 24
+  return 26
 }
 
-/** Badge compacto — só o tamanho do preço, canto superior direito. */
-function drawPriceBadge(
+/** Preço moderno — tipografia limpa, sem caixa amarela. */
+function drawPriceModern(
   ctx: CanvasRenderingContext2D,
   property: Property,
   palette: Palette,
   x: number,
   y: number,
-  maxBadgeW: number,
+  maxW: number,
 ): number {
-  const label = property.type === 'Venda' ? 'Investimento' : 'Valor mensal'
-  const padX = 16
-  const innerMax = maxBadgeW - padX * 2
-
-  ctx.font = FONT.priceLabel
-  const labelW = ctx.measureText(label).width
-  const priceSize = fitPriceFont(ctx, property.price, innerMax)
-  ctx.font = `bold ${priceSize}px Inter, Arial, sans-serif`
-  const priceW = ctx.measureText(property.price).width
-
-  const badgeW = Math.min(maxBadgeW, Math.max(labelW, priceW) + padX * 2)
-  const badgeH = hasPriceDrop(property) ? 72 : 58
-
-  const grad = ctx.createLinearGradient(x, y, x + badgeW, y + badgeH)
-  grad.addColorStop(0, palette.priceGradientStart)
-  grad.addColorStop(1, palette.priceGradientEnd)
-  ctx.fillStyle = grad
-  roundRect(ctx, x, y, badgeW, badgeH, 10)
-  ctx.fill()
-
-  const innerX = x + padX
-  let ty = y + (hasPriceDrop(property) ? 16 : 18)
+  const label = property.type === 'Venda' ? 'INVESTIMENTO' : 'VALOR MENSAL'
+  let cy = y
 
   if (hasPriceDrop(property)) {
     const oldPrice = formatPropertyPrice(property.previousPriceValue!, property.type)
-    ctx.fillStyle = 'rgba(0,0,0,0.4)'
-    ctx.font = '12px Inter, Arial, sans-serif'
-    ctx.fillText(`De ${oldPrice}`, innerX, ty)
-    ty += 14
+    ctx.fillStyle = palette.mutedColor
+    ctx.font = '14px Inter, Arial, sans-serif'
+    ctx.fillText(`De ${oldPrice}`, x, cy)
+    const ow = ctx.measureText(`De ${oldPrice}`).width
+    ctx.strokeStyle = palette.mutedColor
+    ctx.lineWidth = 1.5
+    ctx.beginPath()
+    ctx.moveTo(x, cy - 4)
+    ctx.lineTo(x + ow, cy - 4)
+    ctx.stroke()
+    cy += 20
   }
 
-  ctx.fillStyle = palette.priceText
+  ctx.fillStyle = palette.accentColor
   ctx.font = FONT.priceLabel
-  ctx.fillText(label, innerX, ty)
-  ctx.font = `bold ${priceSize}px Inter, Arial, sans-serif`
-  ctx.fillText(property.price, innerX, y + badgeH - 12)
+  ctx.fillText(label, x, cy)
+  cy += 16
 
-  return badgeH
+  const priceSize = fitPriceFont(ctx, property.price, maxW)
+  ctx.fillStyle = palette.titleColor
+  ctx.font = `bold ${priceSize}px Inter, Arial, sans-serif`
+  ctx.fillText(property.price, x, cy)
+  const priceLineW = ctx.measureText(property.price).width
+  cy += priceSize * 0.75
+
+  ctx.strokeStyle = palette.accentColor
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  ctx.moveTo(x, cy)
+  ctx.lineTo(x + Math.min(maxW, priceLineW + 4), cy)
+  ctx.stroke()
+
+  return cy - y + 6
+}
+
+function measurePropertyCard(
+  ctx: CanvasRenderingContext2D,
+  property: Property,
+  maxW: number,
+  titleFont: string,
+  maxTitleLines: number,
+): number {
+  const lineH = titleFont === FONT.title ? 36 : 30
+  ctx.font = titleFont
+  const titleLines = wrapText(ctx, property.title, maxW).slice(0, maxTitleLines)
+  let h = titleLines.length * lineH + 8 + 20 + 22 + 8
+  ctx.font = FONT.priceLabel
+  h += hasPriceDrop(property) ? 20 : 0
+  h += 16 + fitPriceFont(ctx, property.price, maxW) * 0.75 + 8
+  const items = extractHighlights(property, 2)
+  if (items.length > 0) h += 8 + items.length * 24
+  return h
 }
 
 function drawPropertyCard(
@@ -745,145 +764,164 @@ function drawPropertyCard(
   titleFont = FONT.title,
   maxTitleLines = 3,
 ): number {
-  const badgeW = 230
-  const titleMaxW = maxW - badgeW - 20
   const startY = y
-
-  const badgeH = drawPriceBadge(ctx, property, palette, x + maxW - badgeW, y, badgeW)
-
   let cy = y
+  const lineH = titleFont === FONT.title ? 36 : 30
+
   ctx.fillStyle = palette.titleColor
   ctx.font = titleFont
-  const titleLines = wrapText(ctx, property.title, titleMaxW).slice(0, maxTitleLines)
-  const lineH = titleFont === FONT.title ? 38 : 32
-  titleLines.forEach((line) => {
-    ctx.fillText(line, x, cy)
-    cy += lineH
-  })
+  wrapText(ctx, property.title, maxW)
+    .slice(0, maxTitleLines)
+    .forEach((line) => {
+      ctx.fillText(line, x, cy)
+      cy += lineH
+    })
 
-  cy = Math.max(cy, y + badgeH) + 10
-
+  cy += 8
   ctx.fillStyle = palette.mutedColor
   ctx.font = FONT.location
   ctx.fillText(getLocationLine(property), x, cy)
-  cy += 22
+  cy += 20
 
   ctx.fillStyle = palette.textColor
   ctx.font = FONT.specs
   ctx.fillText(getSpecsLine(property), x, cy)
-  cy += 24
+  cy += 22
 
+  cy += drawPriceModern(ctx, property, palette, x, cy, maxW) + 8
   cy += drawFeatureLines(ctx, property, x, cy, maxW, palette)
 
   return cy - startY
 }
 
+function drawPanelWithCard(
+  ctx: CanvasRenderingContext2D,
+  input: RenderContext,
+  panelY: number,
+  panelH: number,
+  pad: number,
+  maxW: number,
+  titleFont = FONT.title,
+  maxTitleLines = 3,
+) {
+  const p = input.palette
+  ctx.fillStyle = p.panelBg
+  ctx.fillRect(0, panelY, W, panelH)
+  ctx.fillStyle = p.accentColor
+  ctx.fillRect(0, panelY, W, 3)
+
+  const cardH = measurePropertyCard(ctx, input.property, maxW, titleFont, maxTitleLines)
+  const cardY = panelY + Math.max(PANEL_PAD, (panelH - cardH) / 2)
+  drawPropertyCard(ctx, input.property, p, pad, cardY, maxW, titleFont, maxTitleLines)
+}
+
 // ─── 5 layouts distintos ─────────────────────────────────────────────────────
+
+function calcPanelH(
+  ctx: CanvasRenderingContext2D,
+  property: Property,
+  maxW: number,
+  titleFont: string,
+  maxTitleLines: number,
+): number {
+  return measurePropertyCard(ctx, property, maxW, titleFont, maxTitleLines) + PANEL_PAD * 2
+}
 
 /** DESTAQUE */
 async function renderClassic(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  const panelH = 290
-  const photoH = H - panelH - CONTACT_BAR_H
-  const panelY = photoH
-  const p = input.palette
-  const pad = 36
+  const pad = PANEL_PAD
   const fullW = W - pad * 2
+  const panelH = calcPanelH(ctx, input.property, fullW, FONT.title, 3)
+  const photoH = H - panelH - CONTACT_BAR_H
 
   drawMultiPhotoLayout(ctx, input.photos, 0, 0, W, photoH)
-
-  ctx.fillStyle = p.panelBg
-  ctx.fillRect(0, panelY, W, panelH)
-
-  drawTopBranding(ctx, input.logo, input.site, input.property, p, input.customization)
-  drawPropertyCard(ctx, input.property, p, pad, panelY + 20, fullW, FONT.title, 3)
+  drawTopBranding(ctx, input.logo, input.site, input.property, input.palette, input.customization)
+  drawPanelWithCard(ctx, input, photoH, panelH, pad, fullW, FONT.title, 3)
   drawContactBar(ctx, input.site, H - CONTACT_BAR_H, CONTACT_BAR_H)
 }
 
-/** EDITORIAL */
+/** EDITORIAL — fotos à esquerda, painel compacto à direita */
 async function renderModern(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  const split = Math.round(W * 0.52)
-  drawMultiPhotoLayout(ctx, input.photos, 0, 0, split, H - CONTACT_BAR_H)
+  const split = Math.round(W * 0.56)
+  const pad = 24
+  const innerW = W - split - pad * 2
 
+  drawMultiPhotoLayout(ctx, input.photos, 0, 0, split, H - CONTACT_BAR_H)
   drawTopBranding(ctx, input.logo, input.site, input.property, input.palette, input.customization)
 
-  const panelX = split
-  const panelW = W - split
   const p = input.palette
-
   ctx.fillStyle = p.panelBg
-  ctx.fillRect(panelX, 0, panelW, H - CONTACT_BAR_H)
+  ctx.fillRect(split, 0, W - split, H - CONTACT_BAR_H)
   ctx.fillStyle = p.accentColor
-  ctx.fillRect(panelX, 0, 4, H - CONTACT_BAR_H)
+  ctx.fillRect(split, 0, 3, H - CONTACT_BAR_H)
 
-  const pad = 28
-  const innerW = panelW - pad * 2
-  drawPropertyCard(ctx, input.property, p, panelX + pad, 64, innerW, FONT.titleSm, 4)
+  const cardH = measurePropertyCard(ctx, input.property, innerW, FONT.titleSm, 4)
+  const areaH = H - CONTACT_BAR_H - 60
+  const cardY = 60 + Math.max(0, (areaH - cardH) / 2)
+  drawPropertyCard(ctx, input.property, p, split + pad, cardY, innerW, FONT.titleSm, 4)
+
   drawContactBar(ctx, input.site, H - CONTACT_BAR_H, CONTACT_BAR_H)
 }
 
 /** CINEMATOGRÁFICO */
 async function renderBold(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  const photoH = Math.round(H * 0.56)
+  const pad = PANEL_PAD
+  const fullW = W - pad * 2
+  const panelH = calcPanelH(ctx, input.property, fullW, FONT.title, 3)
+  const photoH = H - panelH - CONTACT_BAR_H + 40
+
   drawMultiPhotoLayout(ctx, input.photos, 0, 0, W, photoH)
 
-  const grad = ctx.createLinearGradient(0, photoH - 120, 0, H)
+  const grad = ctx.createLinearGradient(0, photoH - 140, 0, H)
   grad.addColorStop(0, 'rgba(0,0,0,0)')
-  grad.addColorStop(0.45, 'rgba(7,13,24,0.85)')
-  grad.addColorStop(1, 'rgba(7,13,24,0.97)')
+  grad.addColorStop(0.5, 'rgba(7,13,24,0.88)')
+  grad.addColorStop(1, 'rgba(7,13,24,0.98)')
   ctx.fillStyle = grad
-  ctx.fillRect(0, photoH - 120, W, H - photoH + 120)
+  ctx.fillRect(0, photoH - 140, W, H - photoH + 140)
 
   drawTopBranding(ctx, input.logo, input.site, input.property, input.palette, input.customization)
-
-  const p = input.palette
-  const pad = 40
-  const fullW = W - pad * 2
-  drawPropertyCard(ctx, input.property, p, pad, H - CONTACT_BAR_H - 250, fullW, FONT.title, 3)
+  drawPanelWithCard(ctx, input, H - panelH - CONTACT_BAR_H, panelH, pad, fullW, FONT.title, 3)
   drawContactBar(ctx, input.site, H - CONTACT_BAR_H, CONTACT_BAR_H)
 }
 
 /** GALERIA */
 async function renderMinimal(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  const photoH = Math.round(H * 0.56)
-  drawMultiPhotoLayout(ctx, input.photos, 0, 0, W, photoH)
-  drawTopBranding(ctx, input.logo, input.site, input.property, input.palette, input.customization)
-
-  const panelY = photoH
-  ctx.fillStyle = '#ffffff'
-  ctx.fillRect(0, panelY, W, H - photoH - CONTACT_BAR_H)
-  ctx.fillStyle = input.palette.accentColor
-  ctx.fillRect(0, panelY, W, 4)
-
-  const pad = 36
+  const pad = PANEL_PAD
   const fullW = W - pad * 2
   const lightPalette: Palette = {
     ...input.palette,
     titleColor: '#111827',
     textColor: '#374151',
     mutedColor: '#6b7280',
-    accentColor: '#1e40af',
+    accentColor: '#2563eb',
   }
+  const panelH = calcPanelH(ctx, input.property, fullW, FONT.title, 3)
+  const photoH = H - panelH - CONTACT_BAR_H
 
-  drawPropertyCard(ctx, input.property, lightPalette, pad, panelY + 22, fullW)
+  drawMultiPhotoLayout(ctx, input.photos, 0, 0, W, photoH)
+  drawTopBranding(ctx, input.logo, input.site, input.property, input.palette, input.customization)
+
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, photoH, W, panelH)
+  ctx.fillStyle = input.palette.accentColor
+  ctx.fillRect(0, photoH, W, 3)
+
+  const cardH = measurePropertyCard(ctx, input.property, fullW, FONT.title, 3)
+  const cardY = photoH + Math.max(PANEL_PAD, (panelH - cardH) / 2)
+  drawPropertyCard(ctx, input.property, lightPalette, pad, cardY, fullW, FONT.title, 3)
   drawContactBar(ctx, input.site, H - CONTACT_BAR_H, CONTACT_BAR_H, false)
 }
 
 /** MOSAICO */
 async function renderCollage(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  const cardH = 290
-  const photoH = H - cardH - CONTACT_BAR_H
+  const pad = PANEL_PAD
+  const fullW = W - pad * 2
+  const panelH = calcPanelH(ctx, input.property, fullW, FONT.title, 3)
+  const photoH = H - panelH - CONTACT_BAR_H
 
   drawMultiPhotoLayout(ctx, input.photos, 0, 0, W, photoH)
   drawTopBranding(ctx, input.logo, input.site, input.property, input.palette, input.customization)
-
-  const p = input.palette
-  const pad = 36
-  const innerW = W - pad * 2
-
-  ctx.fillStyle = p.panelBg
-  ctx.fillRect(0, photoH, W, cardH)
-
-  drawPropertyCard(ctx, input.property, p, pad, photoH + 22, innerW)
+  drawPanelWithCard(ctx, input, photoH, panelH, pad, fullW, FONT.title, 3)
   drawContactBar(ctx, input.site, H - CONTACT_BAR_H, CONTACT_BAR_H)
 }
 
