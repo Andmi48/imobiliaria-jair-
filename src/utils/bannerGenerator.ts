@@ -91,7 +91,7 @@ export const DEFAULT_BANNER_CUSTOMIZATION: BannerCustomization = {
 
 const W = 1080
 const H = 1080
-const INFO_H = 332
+const INFO_H = 372
 const PHOTO_H = H - INFO_H
 const PHOTO_GAP = 6
 const STRIP_H = 128
@@ -611,16 +611,17 @@ function drawSpecRow(
     const cx = x + i * cellW
     if (i > 0) {
       ctx.fillStyle = line
-      ctx.fillRect(cx, y, 1, 42)
+      ctx.fillRect(cx, y + 2, 1, 44)
     }
+    const tx = cx + (i === 0 ? 0 : 18)
     ctx.fillStyle = palette.titleColor
     ctx.font = FONT.specValue
-    ctx.fillText(cell.value, cx + (i === 0 ? 0 : 16), y + 18)
+    ctx.fillText(cell.value, tx, y + 22)
     ctx.fillStyle = palette.mutedColor
     ctx.font = FONT.specLabel
-    ctx.fillText(cell.label, cx + (i === 0 ? 0 : 16), y + 38)
+    ctx.fillText(cell.label, tx, y + 44)
   })
-  return 48
+  return 58
 }
 
 function drawPriceColumn(
@@ -715,7 +716,9 @@ function drawListingCard(
   const ix = x + inner
   const iw = w - inner * 2
   const priceW = Math.min(240, Math.round(iw * 0.32))
-  const titleW = iw - priceW - 28
+  const titleW = Math.max(160, iw - priceW - 28)
+  const footerH = 102
+  const footerY = y + h - footerH
   let cy = y + 32
 
   ctx.fillStyle = p.titleColor
@@ -730,27 +733,52 @@ function drawListingCard(
 
   ctx.fillStyle = p.mutedColor
   ctx.font = FONT.location
-  ctx.fillText(getLocationLine(input.property), ix, cy + 6)
-  cy += 28
+  ctx.fillText(getLocationLine(input.property), ix, cy + 8)
+  cy += 32
 
   cy += drawSpecRow(ctx, input.property, ix, cy, iw, p, light)
+  cy += 18
 
-  const features = extractHighlights(input.property, 2)
-  if (features.length) {
-    ctx.font = FONT.feature
-    const colW = (iw - 20) / 2
-    features.forEach((item, i) => {
-      const fx = ix + i * (colW + 20)
+  const features = extractHighlights(input.property, 4)
+  ctx.font = FONT.feature
+  const lineH = 22
+  const maxFeatureBottom = footerY - 16
+
+  if (w >= 560 && features.length >= 2) {
+    const colW = (iw - 24) / 2
+    const rowCount = Math.ceil(features.length / 2)
+    for (let row = 0; row < rowCount; row++) {
+      if (cy + lineH > maxFeatureBottom) break
+      for (let col = 0; col < 2; col++) {
+        const item = features[row * 2 + col]
+        if (!item) continue
+        const fx = ix + col * (colW + 24)
+        ctx.fillStyle = p.accentColor
+        ctx.fillText('·', fx, cy)
+        ctx.fillStyle = p.textColor
+        const line = wrapText(ctx, item, colW - 18)[0]
+        ctx.fillText(line, fx + 14, cy)
+      }
+      cy += lineH + 6
+    }
+  } else {
+    features.forEach((item) => {
+      if (cy + lineH > maxFeatureBottom) return
       ctx.fillStyle = p.accentColor
-      ctx.fillText('·', fx, cy + 2)
+      ctx.fillText('·', ix, cy)
       ctx.fillStyle = p.textColor
-      const line = wrapText(ctx, item, colW - 16)[0]
-      ctx.fillText(line, fx + 14, cy + 2)
+      wrapText(ctx, item, iw - 18)
+        .slice(0, 2)
+        .forEach((line, i) => {
+          if (cy + lineH > maxFeatureBottom) return
+          ctx.fillText(line, ix + 14, cy + i * lineH)
+        })
+      const used = Math.min(2, wrapText(ctx, item, iw - 18).length)
+      cy += used * lineH + 6
     })
-    cy += 28
   }
 
-  drawContactBlock(ctx, input.site, ix, y + h - 102, iw, p, light)
+  drawContactBlock(ctx, input.site, ix, footerY, iw, p, light)
 }
 
 function drawMosaic(
