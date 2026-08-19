@@ -92,14 +92,14 @@ export const DEFAULT_BANNER_CUSTOMIZATION: BannerCustomization = {
 
 const W = 1080
 const H = 1080
-const CONTACT_BAR_H = 82
+const CONTACT_BAR_H = 98
 const PHOTO_GAP = 8
 const STRIP_H = 108
 
 /** Consultores — espelha o rodapé do site. */
 const BROKERS = [
   { name: 'Jair A Costa', creci: '19738-F' },
-  { name: 'André Costa', creci: '90092-F' },
+  { name: 'André Tadeu da S. Costa', creci: '90092-F' },
 ] as const
 
 const FONT = {
@@ -109,10 +109,9 @@ const FONT = {
   specs: '600 19px Inter, Arial, sans-serif',
   feature: '500 18px Inter, Arial, sans-serif',
   priceLabel: '600 16px Inter, Arial, sans-serif',
-  contactBroker: '600 16px Inter, Arial, sans-serif',
-  contactCreci: '500 15px Inter, Arial, sans-serif',
-  contactPhone: '500 16px Inter, Arial, sans-serif',
-  contactWhats: '600 16px Inter, Arial, sans-serif',
+  contactBroker: '600 15px Inter, Arial, sans-serif',
+  contactCreci: '500 14px Inter, Arial, sans-serif',
+  contactPhone: '500 15px Inter, Arial, sans-serif',
   badge: 'bold 17px Inter, Arial, sans-serif',
   logoFallback: 'bold 20px Inter, Arial, sans-serif',
 }
@@ -628,11 +627,11 @@ function drawFeatureLines(
     ctx.fillText('✓', x, cy)
     ctx.fillStyle = palette.textColor
     wrapText(ctx, item, maxW - 22)
-      .slice(0, 1)
-      .forEach((line) => {
-        ctx.fillText(line, x + 22, cy)
+      .slice(0, 2)
+      .forEach((line, i) => {
+        ctx.fillText(line, x + 22, cy + i * 22)
       })
-    cy += 26
+    cy += 22 * Math.min(2, wrapText(ctx, item, maxW - 22).length) + 4
   })
   return cy - y
 }
@@ -652,100 +651,88 @@ function drawContactBar(
   const pad = 36
   const mobile = getMobilePhone(site)
   const landline = getLandlinePhone(site)
-  const brokerY = y + 28
-  const phoneY = y + 56
+  const textColor = dark ? 'rgba(255,255,255,0.92)' : '#0f172a'
+  const mutedColor = dark ? 'rgba(255,255,255,0.55)' : '#64748b'
 
-  let bx = pad
-  BROKERS.forEach((broker, i) => {
-    if (i > 0) {
-      ctx.fillStyle = dark ? 'rgba(255,255,255,0.35)' : '#94a3b8'
-      ctx.font = FONT.contactCreci
-      ctx.fillText('•', bx, brokerY)
-      bx += ctx.measureText('•').width + 14
-    }
-
-    ctx.fillStyle = dark ? '#ffffff' : '#0f172a'
+  let lineY = y + 24
+  BROKERS.forEach((broker) => {
+    ctx.fillStyle = textColor
     ctx.font = FONT.contactBroker
-    ctx.fillText(broker.name, bx, brokerY)
-    bx += ctx.measureText(broker.name).width + 8
-
-    ctx.fillStyle = dark ? 'rgba(255,255,255,0.6)' : '#64748b'
+    ctx.fillText(broker.name, pad, lineY)
+    const nameW = ctx.measureText(broker.name).width
+    ctx.fillStyle = mutedColor
     ctx.font = FONT.contactCreci
-    const creciLabel = `CRECI ${broker.creci}`
-    ctx.fillText(creciLabel, bx, brokerY)
-    bx += ctx.measureText(creciLabel).width + 14
+    ctx.fillText(`CRECI ${broker.creci}`, pad + nameW + 10, lineY)
+    lineY += 22
   })
 
-  let px = pad
-  if (landline) {
-    ctx.fillStyle = dark ? 'rgba(255,255,255,0.75)' : '#475569'
-    ctx.font = FONT.contactPhone
-    const landLabel = `Fixo ${landline}`
-    ctx.fillText(landLabel, px, phoneY)
-    px += ctx.measureText(landLabel).width + 20
-  }
-
-  if (mobile) {
-    if (px > pad) {
-      ctx.fillStyle = dark ? 'rgba(255,255,255,0.35)' : '#94a3b8'
-      ctx.font = FONT.contactCreci
-      ctx.fillText('•', px - 10, phoneY)
-    }
-    ctx.fillStyle = '#34d399'
-    ctx.font = FONT.contactWhats
-    ctx.fillText(`WhatsApp ${mobile}`, px, phoneY)
-  }
-
-  ctx.textBaseline = 'alphabetic'
+  lineY += 4
+  ctx.fillStyle = textColor
+  ctx.font = FONT.contactPhone
+  const phones: string[] = []
+  if (landline) phones.push(landline)
+  if (mobile) phones.push(mobile)
+  ctx.fillText(phones.join('   ·   '), pad, lineY)
 }
 
 
-function fitPriceFont(ctx: CanvasRenderingContext2D, price: string, maxInnerW: number): void {
-  let size = 40
-  while (size >= 28) {
+function fitPriceFont(ctx: CanvasRenderingContext2D, price: string, maxInnerW: number): number {
+  let size = 34
+  while (size >= 24) {
     ctx.font = `bold ${size}px Inter, Arial, sans-serif`
-    if (ctx.measureText(price).width <= maxInnerW) return
+    if (ctx.measureText(price).width <= maxInnerW) return size
     size -= 2
   }
-  ctx.font = 'bold 28px Inter, Arial, sans-serif'
+  return 24
 }
 
-function drawPriceBlock(
+/** Badge compacto — só o tamanho do preço, canto superior direito. */
+function drawPriceBadge(
   ctx: CanvasRenderingContext2D,
   property: Property,
   palette: Palette,
   x: number,
   y: number,
-  w: number,
+  maxBadgeW: number,
 ): number {
-  const blockH = hasPriceDrop(property) ? 88 : 72
-  const grad = ctx.createLinearGradient(x, y, x + w, y + blockH)
+  const label = property.type === 'Venda' ? 'Investimento' : 'Valor mensal'
+  const padX = 16
+  const innerMax = maxBadgeW - padX * 2
+
+  ctx.font = FONT.priceLabel
+  const labelW = ctx.measureText(label).width
+  const priceSize = fitPriceFont(ctx, property.price, innerMax)
+  ctx.font = `bold ${priceSize}px Inter, Arial, sans-serif`
+  const priceW = ctx.measureText(property.price).width
+
+  const badgeW = Math.min(maxBadgeW, Math.max(labelW, priceW) + padX * 2)
+  const badgeH = hasPriceDrop(property) ? 72 : 58
+
+  const grad = ctx.createLinearGradient(x, y, x + badgeW, y + badgeH)
   grad.addColorStop(0, palette.priceGradientStart)
   grad.addColorStop(1, palette.priceGradientEnd)
-
   ctx.fillStyle = grad
-  roundRect(ctx, x, y, w, blockH, 12)
+  roundRect(ctx, x, y, badgeW, badgeH, 10)
   ctx.fill()
 
-  const innerX = x + 18
-  let labelY = y + 22
+  const innerX = x + padX
+  let ty = y + (hasPriceDrop(property) ? 16 : 18)
 
   if (hasPriceDrop(property)) {
     const oldPrice = formatPropertyPrice(property.previousPriceValue!, property.type)
     ctx.fillStyle = 'rgba(0,0,0,0.4)'
-    ctx.font = '14px Inter, Arial, sans-serif'
-    ctx.fillText(`De ${oldPrice}`, innerX, labelY)
-    labelY += 18
+    ctx.font = '12px Inter, Arial, sans-serif'
+    ctx.fillText(`De ${oldPrice}`, innerX, ty)
+    ty += 14
   }
 
   ctx.fillStyle = palette.priceText
   ctx.font = FONT.priceLabel
-  ctx.fillText(property.type === 'Venda' ? 'Investimento' : 'Valor mensal', innerX, labelY)
+  ctx.fillText(label, innerX, ty)
+  ctx.font = `bold ${priceSize}px Inter, Arial, sans-serif`
+  ctx.fillText(property.price, innerX, y + badgeH - 12)
 
-  fitPriceFont(ctx, property.price, w - 36)
-  ctx.fillText(property.price, innerX, y + blockH - 12)
-
-  return blockH
+  return badgeH
 }
 
 function drawPropertyCard(
@@ -756,41 +743,46 @@ function drawPropertyCard(
   y: number,
   maxW: number,
   titleFont = FONT.title,
-  maxTitleLines = 2,
+  maxTitleLines = 3,
 ): number {
-  let cy = y
+  const badgeW = 230
+  const titleMaxW = maxW - badgeW - 20
+  const startY = y
 
+  const badgeH = drawPriceBadge(ctx, property, palette, x + maxW - badgeW, y, badgeW)
+
+  let cy = y
   ctx.fillStyle = palette.titleColor
   ctx.font = titleFont
-  wrapText(ctx, property.title, maxW)
-    .slice(0, maxTitleLines)
-    .forEach((line) => {
-      ctx.fillText(line, x, cy)
-      cy += titleFont === FONT.title ? 40 : 34
-    })
+  const titleLines = wrapText(ctx, property.title, titleMaxW).slice(0, maxTitleLines)
+  const lineH = titleFont === FONT.title ? 38 : 32
+  titleLines.forEach((line) => {
+    ctx.fillText(line, x, cy)
+    cy += lineH
+  })
 
-  cy += 8
+  cy = Math.max(cy, y + badgeH) + 10
+
   ctx.fillStyle = palette.mutedColor
   ctx.font = FONT.location
   ctx.fillText(getLocationLine(property), x, cy)
-  cy += 24
+  cy += 22
 
   ctx.fillStyle = palette.textColor
   ctx.font = FONT.specs
   ctx.fillText(getSpecsLine(property), x, cy)
-  cy += 28
+  cy += 24
 
-  cy += drawPriceBlock(ctx, property, palette, x, cy, maxW) + 12
   cy += drawFeatureLines(ctx, property, x, cy, maxW, palette)
 
-  return cy - y
+  return cy - startY
 }
 
 // ─── 5 layouts distintos ─────────────────────────────────────────────────────
 
 /** DESTAQUE */
 async function renderClassic(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  const panelH = 310
+  const panelH = 290
   const photoH = H - panelH - CONTACT_BAR_H
   const panelY = photoH
   const p = input.palette
@@ -803,7 +795,7 @@ async function renderClassic(ctx: CanvasRenderingContext2D, input: RenderContext
   ctx.fillRect(0, panelY, W, panelH)
 
   drawTopBranding(ctx, input.logo, input.site, input.property, p, input.customization)
-  drawPropertyCard(ctx, input.property, p, pad, panelY + 22, fullW)
+  drawPropertyCard(ctx, input.property, p, pad, panelY + 20, fullW, FONT.title, 3)
   drawContactBar(ctx, input.site, H - CONTACT_BAR_H, CONTACT_BAR_H)
 }
 
@@ -825,7 +817,7 @@ async function renderModern(ctx: CanvasRenderingContext2D, input: RenderContext)
 
   const pad = 28
   const innerW = panelW - pad * 2
-  drawPropertyCard(ctx, input.property, p, panelX + pad, 68, innerW, FONT.titleSm, 3)
+  drawPropertyCard(ctx, input.property, p, panelX + pad, 64, innerW, FONT.titleSm, 4)
   drawContactBar(ctx, input.site, H - CONTACT_BAR_H, CONTACT_BAR_H)
 }
 
@@ -846,7 +838,7 @@ async function renderBold(ctx: CanvasRenderingContext2D, input: RenderContext) {
   const p = input.palette
   const pad = 40
   const fullW = W - pad * 2
-  drawPropertyCard(ctx, input.property, p, pad, H - CONTACT_BAR_H - 270, fullW)
+  drawPropertyCard(ctx, input.property, p, pad, H - CONTACT_BAR_H - 250, fullW, FONT.title, 3)
   drawContactBar(ctx, input.site, H - CONTACT_BAR_H, CONTACT_BAR_H)
 }
 
@@ -878,7 +870,7 @@ async function renderMinimal(ctx: CanvasRenderingContext2D, input: RenderContext
 
 /** MOSAICO */
 async function renderCollage(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  const cardH = 310
+  const cardH = 290
   const photoH = H - cardH - CONTACT_BAR_H
 
   drawMultiPhotoLayout(ctx, input.photos, 0, 0, W, photoH)
