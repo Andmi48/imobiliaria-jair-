@@ -47,7 +47,7 @@ export default function PropertyShareBannerModal({ property, open, onClose }: Pr
 
   useEffect(() => {
     if (!open) return
-    setSelectedPhotos(allPhotos.slice(0, Math.min(1, allPhotos.length)))
+    setSelectedPhotos(allPhotos.slice(0, MAX_BANNER_PHOTOS))
     setTemplateId('classic')
     setCustomization(DEFAULT_BANNER_CUSTOMIZATION)
     setPreviewUrl(null)

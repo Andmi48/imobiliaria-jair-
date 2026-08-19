@@ -16,27 +16,27 @@ export const BANNER_TEMPLATES: Array<{
   {
     id: 'classic',
     name: 'Destaque',
-    description: 'Foto principal grande + miniaturas legíveis + WhatsApp em destaque',
+    description: 'Todas as fotos em destaque + painel legível + WhatsApp',
   },
   {
     id: 'modern',
     name: 'Editorial',
-    description: 'Foto ampla à esquerda + informações organizadas à direita',
+    description: 'Galeria à esquerda + informações organizadas à direita',
   },
   {
     id: 'bold',
     name: 'Cinematográfico',
-    description: 'Imagem imersiva com faixa inferior limpa',
+    description: 'Composição de fotos com faixa inferior elegante',
   },
   {
     id: 'minimal',
     name: 'Galeria',
-    description: 'Duas fotos grandes + painel claro e objetivo',
+    description: 'Múltiplas fotos grandes + painel claro e objetivo',
   },
   {
     id: 'collage',
     name: 'Mosaico Premium',
-    description: 'Hero com miniaturas + cartão inferior compacto',
+    description: 'Mosaico com até 5 fotos + cartão inferior compacto',
   },
 ]
 
@@ -92,6 +92,26 @@ export const DEFAULT_BANNER_CUSTOMIZATION: BannerCustomization = {
 
 const W = 1080
 const H = 1080
+const CONTACT_BAR_H = 96
+const PHOTO_GAP = 10
+
+/** Tipografia pensada para leitura em 1080px (Instagram / WhatsApp). */
+const FONT = {
+  title: 'bold 42px Inter, Arial, sans-serif',
+  location: '20px Inter, Arial, sans-serif',
+  specs: 'bold 20px Inter, Arial, sans-serif',
+  hook: '22px Inter, Arial, sans-serif',
+  highlight: '21px Inter, Arial, sans-serif',
+  check: 'bold 22px Inter, Arial, sans-serif',
+  priceLabel: '600 17px Inter, Arial, sans-serif',
+  priceValue: 'bold 46px Inter, Arial, sans-serif',
+  contactName: '600 18px Inter, Arial, sans-serif',
+  contactLandline: '16px Inter, Arial, sans-serif',
+  contactWhatsLabel: '700 13px Inter, Arial, sans-serif',
+  contactWhatsPhone: 'bold 28px Inter, Arial, sans-serif',
+  badge: 'bold 19px Inter, Arial, sans-serif',
+  logoFallback: 'bold 22px Inter, Arial, sans-serif',
+}
 
 type Palette = {
   panelBg: string
@@ -455,11 +475,8 @@ function getSpecsLine(property: Property): string {
 
 // ─── Layouts de foto ─────────────────────────────────────────────────────────
 
-const THUMB_STRIP_H = 112
-const CONTACT_BAR_H = 88
-
-/** Foto principal grande + até 3 miniaturas legíveis embaixo. */
-function drawHeroWithThumbs(
+/** Exibe TODAS as fotos selecionadas (1 a 5) com tamanho legível. */
+function drawMultiPhotoLayout(
   ctx: CanvasRenderingContext2D,
   photos: HTMLImageElement[],
   x: number,
@@ -467,56 +484,49 @@ function drawHeroWithThumbs(
   w: number,
   h: number,
 ) {
-  if (photos.length <= 1) {
+  const gap = PHOTO_GAP
+  const count = photos.length
+
+  if (count === 1) {
     drawCoverImage(ctx, photos[0], x, y, w, h)
     return
   }
 
-  const gap = 8
-  const heroH = h - THUMB_STRIP_H - gap
+  if (count === 2) {
+    const half = (w - gap) / 2
+    drawCoverImage(ctx, photos[0], x, y, half, h)
+    drawCoverImage(ctx, photos[1], x + half + gap, y, half, h)
+    return
+  }
+
+  if (count === 3) {
+    const mainW = Math.round(w * 0.64) - gap / 2
+    drawCoverImage(ctx, photos[0], x, y, mainW, h)
+    const sideW = w - mainW - gap
+    const sideH = (h - gap) / 2
+    drawCoverImage(ctx, photos[1], x + mainW + gap, y, sideW, sideH)
+    drawCoverImage(ctx, photos[2], x + mainW + gap, y + sideH + gap, sideW, sideH)
+    return
+  }
+
+  const stripH = Math.max(140, Math.round(h * 0.3))
+  const heroH = h - stripH - gap
   drawCoverImage(ctx, photos[0], x, y, w, heroH)
 
-  const thumbs = photos.slice(1, 4)
-  const thumbW = (w - gap * (thumbs.length - 1)) / thumbs.length
-  thumbs.forEach((img, i) => {
+  const extras = photos.slice(1, 5)
+  const thumbW = (w - gap * (extras.length - 1)) / extras.length
+  extras.forEach((img, i) => {
     const tx = x + i * (thumbW + gap)
     const ty = y + heroH + gap
     ctx.fillStyle = '#0f172a'
-    roundRect(ctx, tx, ty, thumbW, THUMB_STRIP_H, 10)
+    roundRect(ctx, tx, ty, thumbW, stripH, 12)
     ctx.fill()
     ctx.save()
-    roundRect(ctx, tx, ty, thumbW, THUMB_STRIP_H, 10)
+    roundRect(ctx, tx, ty, thumbW, stripH, 12)
     ctx.clip()
-    drawCoverImage(ctx, img, tx, ty, thumbW, THUMB_STRIP_H)
+    drawCoverImage(ctx, img, tx, ty, thumbW, stripH)
     ctx.restore()
   })
-}
-
-/** Uma foto em tela cheia na área */
-function drawSingleHero(
-  ctx: CanvasRenderingContext2D,
-  photos: HTMLImageElement[],
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-) {
-  drawCoverImage(ctx, photos[0], x, y, w, h)
-}
-
-/** Duas fotos grandes lado a lado */
-function drawDualHero(
-  ctx: CanvasRenderingContext2D,
-  photos: HTMLImageElement[],
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-) {
-  const gap = 10
-  const half = (w - gap) / 2
-  drawCoverImage(ctx, photos[0], x, y, half, h)
-  drawCoverImage(ctx, photos[1] ?? photos[0], x + half + gap, y, half, h)
 }
 
 // ─── Elementos visuais ───────────────────────────────────────────────────────
@@ -551,13 +561,13 @@ function drawTopBranding(
     ctx.drawImage(logo, logoX + 12, logoY + 8, logoW, logoH)
   } else {
     ctx.fillStyle = '#1e3a8a'
-    ctx.font = 'bold 18px Inter, Arial, sans-serif'
+    ctx.font = FONT.logoFallback
     ctx.fillText(site.shortName || site.name, logoX + 12, logoY + 32)
   }
 
   const typeText = property.type.toUpperCase()
   const typeBg = property.type === 'Venda' ? palette.saleBadge : palette.rentBadge
-  ctx.font = 'bold 17px Inter, Arial, sans-serif'
+  ctx.font = FONT.badge
   const padX = 16
   const tw = ctx.measureText(typeText).width
   const bw = tw + padX * 2
@@ -608,28 +618,28 @@ function drawCleanHighlights(
   let cy = y
 
   ctx.fillStyle = palette.mutedColor
-  ctx.font = '15px Inter, Arial, sans-serif'
+  ctx.font = FONT.hook
   wrapText(ctx, hook, maxW)
     .slice(0, 1)
     .forEach((line) => {
       ctx.fillText(line, x, cy)
-      cy += 22
+      cy += 26
     })
 
-  cy += 10
+  cy += 12
 
   items.forEach((item) => {
     ctx.fillStyle = palette.accentColor
-    ctx.font = 'bold 15px Inter, Arial, sans-serif'
-    ctx.fillText('✓', x, cy + 15)
+    ctx.font = FONT.check
+    ctx.fillText('✓', x, cy + 17)
 
     ctx.fillStyle = palette.textColor
-    ctx.font = '15px Inter, Arial, sans-serif'
-    const lines = wrapText(ctx, item, maxW - 24).slice(0, 2)
+    ctx.font = FONT.highlight
+    const lines = wrapText(ctx, item, maxW - 28).slice(0, 2)
     lines.forEach((line, i) => {
-      ctx.fillText(line, x + 22, cy + 15 + i * 21)
+      ctx.fillText(line, x + 26, cy + 17 + i * 24)
     })
-    cy += 21 * lines.length + 8
+    cy += 24 * lines.length + 10
   })
 
   return cy - y
@@ -669,36 +679,35 @@ function drawPremiumContactBar(
 
   ctx.textBaseline = 'middle'
   ctx.fillStyle = dark ? palette.titleColor : '#111827'
-  ctx.font = '600 15px Inter, Arial, sans-serif'
-  ctx.fillText(`${site.shortName || site.name}  •  CRECI ${site.creci}`, pad, midY - (landline ? 10 : 0))
+  ctx.font = FONT.contactName
+  ctx.fillText(`${site.shortName || site.name}  •  CRECI ${site.creci}`, pad, midY - (landline ? 12 : 0))
 
   if (landline) {
     ctx.fillStyle = dark ? palette.mutedColor : '#6b7280'
-    ctx.font = '13px Inter, Arial, sans-serif'
-    ctx.fillText(`Fixo: ${landline}`, pad, midY + 12)
+    ctx.font = FONT.contactLandline
+    ctx.fillText(`Fixo: ${landline}`, pad, midY + 14)
   }
 
   if (mobile) {
-    ctx.font = 'bold 22px Inter, Arial, sans-serif'
+    ctx.font = FONT.contactWhatsPhone
     const phoneW = ctx.measureText(mobile).width
-    const iconSize = 36
-    const pillPadX = 18
-    const pillW = iconSize + pillPadX + phoneW + 16
-    const pillH = 52
+    const iconSize = 40
+    const pillW = iconSize + 20 + phoneW + 20
+    const pillH = 58
     const pillX = W - pad - pillW
     const pillY = midY - pillH / 2
 
     ctx.fillStyle = '#25D366'
-    roundRect(ctx, pillX, pillY, pillW, pillH, 26)
+    roundRect(ctx, pillX, pillY, pillW, pillH, 29)
     ctx.fill()
 
-    drawWhatsAppIcon(ctx, pillX + 10, pillY + 8, iconSize - 16)
+    drawWhatsAppIcon(ctx, pillX + 12, pillY + 10, iconSize - 12)
 
     ctx.fillStyle = '#ffffff'
-    ctx.font = '600 11px Inter, Arial, sans-serif'
-    ctx.fillText('WHATSAPP', pillX + iconSize + 6, pillY + 18)
-    ctx.font = 'bold 22px Inter, Arial, sans-serif'
-    ctx.fillText(mobile, pillX + iconSize + 6, pillY + 38)
+    ctx.font = FONT.contactWhatsLabel
+    ctx.fillText('WHATSAPP', pillX + iconSize + 8, pillY + 20)
+    ctx.font = FONT.contactWhatsPhone
+    ctx.fillText(mobile, pillX + iconSize + 8, pillY + 44)
   }
 
   ctx.textBaseline = 'alphabetic'
@@ -714,7 +723,7 @@ function drawPriceBlock(
   w: number,
   compact = false,
 ): number {
-  const blockH = compact ? (hasPriceDrop(property) ? 96 : 76) : hasPriceDrop(property) ? 110 : 86
+  const blockH = compact ? (hasPriceDrop(property) ? 100 : 82) : hasPriceDrop(property) ? 114 : 90
   const grad = ctx.createLinearGradient(x, y, x + w, y + blockH)
   grad.addColorStop(0, palette.priceGradientStart)
   grad.addColorStop(1, palette.priceGradientEnd)
@@ -742,11 +751,11 @@ function drawPriceBlock(
   }
 
   ctx.fillStyle = palette.priceText
-  ctx.font = '600 14px Inter, Arial, sans-serif'
+  ctx.font = FONT.priceLabel
   ctx.fillText(property.type === 'Venda' ? 'Investimento' : 'Valor mensal', innerX, labelY)
 
-  ctx.font = `bold ${compact ? 34 : 38}px Inter, Arial, sans-serif`
-  ctx.fillText(property.price, innerX, y + blockH - (compact ? 14 : 16))
+  ctx.font = FONT.priceValue
+  ctx.fillText(property.price, innerX, y + blockH - (compact ? 16 : 18))
 
   return blockH
 }
@@ -765,54 +774,55 @@ function drawInfoHeader(
   let cy = y
 
   ctx.fillStyle = palette.titleColor
-  ctx.font = 'bold 27px Inter, Arial, sans-serif'
+  ctx.font = FONT.title
   const titleLines = wrapText(ctx, property.title, maxW - priceW - 12).slice(0, 1)
   titleLines.forEach((line) => {
     ctx.fillText(line, x, cy)
-    cy += 32
+    cy += 42
   })
 
   drawPriceBlock(ctx, property, palette, x + maxW - priceW, y, priceW, true)
 
   ctx.fillStyle = palette.mutedColor
-  ctx.font = '14px Inter, Arial, sans-serif'
+  ctx.font = FONT.location
   ctx.fillText(`${property.location} • ${property.city}`, x, cy + 2)
-  cy += 22
+  cy += 24
 
+  ctx.font = FONT.specs
   ctx.fillText(getSpecsLine(property), x, cy)
-  cy += 22
+  cy += 24
 
   return cy - y
 }
 
-/** DESTAQUE: foto grande + miniaturas legíveis + painel limpo */
+/** DESTAQUE: todas as fotos visíveis + painel legível */
 async function renderClassic(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  const panelH = 300
+  const panelH = 268
   const photoH = H - panelH - CONTACT_BAR_H
   const panelY = photoH
   const p = input.palette
   const pad = 32
   const fullW = W - pad * 2
 
-  drawHeroWithThumbs(ctx, input.photos, 0, 0, W, photoH)
+  drawMultiPhotoLayout(ctx, input.photos, 0, 0, W, photoH)
 
   ctx.fillStyle = p.panelBg
   ctx.fillRect(0, panelY, W, panelH)
 
   drawTopBranding(ctx, input.logo, input.site, input.property, p, input.customization)
 
-  const priceW = 220
-  let cy = panelY + 22
-  cy += drawInfoHeader(ctx, input.property, p, pad, cy, fullW, priceW) + 6
+  const priceW = 240
+  let cy = panelY + 20
+  cy += drawInfoHeader(ctx, input.property, p, pad, cy, fullW, priceW) + 4
   drawCleanHighlights(ctx, input.property, pad, cy, fullW, p)
 
   drawPremiumContactBar(ctx, input.site, p, H - CONTACT_BAR_H, CONTACT_BAR_H)
 }
 
-/** EDITORIAL: foto grande à esquerda, informações à direita */
+/** EDITORIAL: fotos à esquerda (todas), informações à direita */
 async function renderModern(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  const split = Math.round(W * 0.54)
-  drawSingleHero(ctx, input.photos, 0, 0, split, H - CONTACT_BAR_H)
+  const split = Math.round(W * 0.52)
+  drawMultiPhotoLayout(ctx, input.photos, 0, 0, split, H - CONTACT_BAR_H)
 
   drawTopBranding(ctx, input.logo, input.site, input.property, input.palette, input.customization)
 
@@ -828,62 +838,64 @@ async function renderModern(ctx: CanvasRenderingContext2D, input: RenderContext)
 
   const pad = 24
   const innerW = panelW - pad * 2
-  let cy = 82
+  let cy = 78
 
   ctx.fillStyle = p.titleColor
-  ctx.font = 'bold 25px Inter, Arial, sans-serif'
+  ctx.font = FONT.title
   wrapText(ctx, input.property.title, innerW)
     .slice(0, 2)
     .forEach((line) => {
       ctx.fillText(line, panelX + pad, cy)
-      cy += 30
+      cy += 40
     })
 
   cy += 4
   ctx.fillStyle = p.mutedColor
-  ctx.font = '14px Inter, Arial, sans-serif'
+  ctx.font = FONT.location
   ctx.fillText(`${input.property.location} • ${input.property.city}`, panelX + pad, cy)
-  cy += 20
+  cy += 24
+  ctx.font = FONT.specs
   ctx.fillText(getSpecsLine(input.property), panelX + pad, cy)
-  cy += 22
+  cy += 26
 
   const priceH = drawPriceBlock(ctx, input.property, p, panelX + pad, cy, innerW, true)
-  cy += priceH + 14
+  cy += priceH + 12
   drawCleanHighlights(ctx, input.property, panelX + pad, cy, innerW, p)
 
   drawPremiumContactBar(ctx, input.site, p, H - CONTACT_BAR_H, CONTACT_BAR_H)
 }
 
-/** CINEMATOGRÁFICO: foto imersiva + faixa inferior organizada */
+/** CINEMATOGRÁFICO: fotos no topo + faixa inferior com gradiente */
 async function renderBold(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  drawSingleHero(ctx, input.photos, 0, 0, W, H)
+  const photoH = Math.round(H * 0.58)
+  drawMultiPhotoLayout(ctx, input.photos, 0, 0, W, photoH)
 
-  const grad = ctx.createLinearGradient(0, H * 0.35, 0, H)
+  const grad = ctx.createLinearGradient(0, photoH - 80, 0, H)
   grad.addColorStop(0, 'rgba(0,0,0,0)')
-  grad.addColorStop(0.55, 'rgba(0,0,0,0.55)')
-  grad.addColorStop(1, 'rgba(15,23,42,0.94)')
+  grad.addColorStop(0.4, 'rgba(15,23,42,0.72)')
+  grad.addColorStop(1, 'rgba(15,23,42,0.96)')
   ctx.fillStyle = grad
-  ctx.fillRect(0, 0, W, H)
+  ctx.fillRect(0, photoH - 80, W, H - photoH + 80)
 
   drawTopBranding(ctx, input.logo, input.site, input.property, input.palette, input.customization)
 
   const p = input.palette
   const pad = 36
-  const panelTop = H - CONTACT_BAR_H - 290
-  let cy = panelTop + 20
+  const panelTop = H - CONTACT_BAR_H - 280
+  let cy = panelTop + 16
   const fullW = W - pad * 2
-  const priceW = 240
+  const priceW = 250
 
-  cy += drawInfoHeader(ctx, input.property, p, pad, cy, fullW, priceW) + 8
+  cy += drawInfoHeader(ctx, input.property, p, pad, cy, fullW, priceW) + 6
   drawCleanHighlights(ctx, input.property, pad, cy, fullW, p)
 
   drawPremiumContactBar(ctx, input.site, p, H - CONTACT_BAR_H, CONTACT_BAR_H)
 }
 
-/** GALERIA: duas fotos grandes + painel claro */
+/** GALERIA: fotos grandes + painel claro */
 async function renderMinimal(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  const photoH = Math.round(H * 0.62)
-  drawDualHero(ctx, input.photos, 0, 0, W, photoH)
+  const photoH = Math.round(H * 0.58)
+  drawMultiPhotoLayout(ctx, input.photos, 0, 0, W, photoH)
   drawTopBranding(ctx, input.logo, input.site, input.property, input.palette, input.customization)
 
   const panelY = photoH
@@ -896,8 +908,8 @@ async function renderMinimal(ctx: CanvasRenderingContext2D, input: RenderContext
 
   const pad = 32
   const fullW = W - pad * 2
-  const priceW = 260
-  let cy = panelY + 24
+  const priceW = 270
+  let cy = panelY + 22
 
   const lightPalette: Palette = {
     ...input.palette,
@@ -907,24 +919,18 @@ async function renderMinimal(ctx: CanvasRenderingContext2D, input: RenderContext
     accentColor: '#1e40af',
   }
 
-  cy += drawInfoHeader(ctx, input.property, lightPalette, pad, cy, fullW, priceW) + 6
+  cy += drawInfoHeader(ctx, input.property, lightPalette, pad, cy, fullW, priceW) + 4
   drawCleanHighlights(ctx, input.property, pad, cy, fullW, lightPalette)
 
   drawPremiumContactBar(ctx, input.site, { ...input.palette, titleColor: '#111827' }, H - CONTACT_BAR_H, CONTACT_BAR_H, false)
 }
 
-/** MOSAICO: foto hero com miniaturas + cartão inferior compacto */
+/** MOSAICO: composição de fotos + cartão inferior */
 async function renderCollage(ctx: CanvasRenderingContext2D, input: RenderContext) {
-  const cardH = 320
+  const cardH = 280
   const photoH = H - cardH - CONTACT_BAR_H
 
-  drawHeroWithThumbs(ctx, input.photos, 0, 0, W, photoH)
-
-  const grad = ctx.createLinearGradient(0, photoH - 80, 0, photoH + 20)
-  grad.addColorStop(0, 'rgba(0,0,0,0)')
-  grad.addColorStop(1, 'rgba(15,23,42,0.85)')
-  ctx.fillStyle = grad
-  ctx.fillRect(0, photoH - 80, W, 100)
+  drawMultiPhotoLayout(ctx, input.photos, 0, 0, W, photoH)
 
   drawTopBranding(ctx, input.logo, input.site, input.property, input.palette, input.customization)
 
@@ -932,13 +938,13 @@ async function renderCollage(ctx: CanvasRenderingContext2D, input: RenderContext
   const cardY = photoH
   const pad = 32
   const innerW = W - pad * 2
-  const priceW = 230
+  const priceW = 240
 
   ctx.fillStyle = p.panelBg
   ctx.fillRect(0, cardY, W, cardH)
 
-  let cy = cardY + 24
-  cy += drawInfoHeader(ctx, input.property, p, pad, cy, innerW, priceW) + 6
+  let cy = cardY + 20
+  cy += drawInfoHeader(ctx, input.property, p, pad, cy, innerW, priceW) + 4
   drawCleanHighlights(ctx, input.property, pad, cy, innerW, p)
 
   drawPremiumContactBar(ctx, input.site, p, H - CONTACT_BAR_H, CONTACT_BAR_H)
