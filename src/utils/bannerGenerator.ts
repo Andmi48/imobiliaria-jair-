@@ -627,12 +627,11 @@ function drawFeatureLines(
     ctx.fillStyle = palette.accentColor
     ctx.fillText('✓', x, cy)
     ctx.fillStyle = palette.textColor
-    wrapText(ctx, item, maxW - 22)
-      .slice(0, 2)
-      .forEach((line, i) => {
-        ctx.fillText(line, x + 22, cy + i * 22)
-      })
-    cy += 22 * Math.min(2, wrapText(ctx, item, maxW - 22).length) + 4
+    const lines = wrapText(ctx, item, maxW - 22).slice(0, 2)
+    lines.forEach((line, i) => {
+      ctx.fillText(line, x + 22, cy + i * 22)
+    })
+    cy += 22 * lines.length + 6
   })
   return cy - y
 }
@@ -723,7 +722,7 @@ function drawPriceModern(
   ctx.font = `bold ${priceSize}px Inter, Arial, sans-serif`
   ctx.fillText(property.price, x, cy)
   const priceLineW = ctx.measureText(property.price).width
-  cy += priceSize * 0.75
+  cy += priceSize + 8
 
   ctx.strokeStyle = palette.accentColor
   ctx.lineWidth = 2
@@ -732,7 +731,7 @@ function drawPriceModern(
   ctx.lineTo(x + Math.min(maxW, priceLineW + 4), cy)
   ctx.stroke()
 
-  return cy - y + 6
+  return cy - y + 12
 }
 
 function measurePropertyCard(
@@ -745,12 +744,20 @@ function measurePropertyCard(
   const lineH = titleFont === FONT.title ? 36 : 30
   ctx.font = titleFont
   const titleLines = wrapText(ctx, property.title, maxW).slice(0, maxTitleLines)
-  let h = titleLines.length * lineH + 8 + 20 + 22 + 8
-  ctx.font = FONT.priceLabel
-  h += hasPriceDrop(property) ? 20 : 0
-  h += 16 + fitPriceFont(ctx, property.price, maxW) * 0.75 + 8
-  const items = extractHighlights(property, 2)
-  if (items.length > 0) h += 8 + items.length * 24
+  let h = titleLines.length * lineH + 8 + 20 + 22
+
+  if (hasPriceDrop(property)) h += 20
+  h += 16
+  const priceSize = fitPriceFont(ctx, property.price, maxW)
+  h += priceSize + 8 + 12
+
+  h += 8
+  ctx.font = FONT.feature
+  extractHighlights(property, 2).forEach((item) => {
+    const lines = Math.min(2, wrapText(ctx, item, maxW - 22).length)
+    h += 22 * lines + 4
+  })
+
   return h
 }
 
@@ -810,9 +817,7 @@ function drawPanelWithCard(
   ctx.fillStyle = p.accentColor
   ctx.fillRect(0, panelY, W, 3)
 
-  const cardH = measurePropertyCard(ctx, input.property, maxW, titleFont, maxTitleLines)
-  const cardY = panelY + Math.max(PANEL_PAD, (panelH - cardH) / 2)
-  drawPropertyCard(ctx, input.property, p, pad, cardY, maxW, titleFont, maxTitleLines)
+  drawPropertyCard(ctx, input.property, p, pad, panelY + PANEL_PAD, maxW, titleFont, maxTitleLines)
 }
 
 // ─── 5 layouts distintos ─────────────────────────────────────────────────────
@@ -824,7 +829,7 @@ function calcPanelH(
   titleFont: string,
   maxTitleLines: number,
 ): number {
-  return measurePropertyCard(ctx, property, maxW, titleFont, maxTitleLines) + PANEL_PAD * 2
+  return measurePropertyCard(ctx, property, maxW, titleFont, maxTitleLines) + PANEL_PAD * 2 + 16
 }
 
 /** DESTAQUE */
@@ -906,9 +911,7 @@ async function renderMinimal(ctx: CanvasRenderingContext2D, input: RenderContext
   ctx.fillStyle = input.palette.accentColor
   ctx.fillRect(0, photoH, W, 3)
 
-  const cardH = measurePropertyCard(ctx, input.property, fullW, FONT.title, 3)
-  const cardY = photoH + Math.max(PANEL_PAD, (panelH - cardH) / 2)
-  drawPropertyCard(ctx, input.property, lightPalette, pad, cardY, fullW, FONT.title, 3)
+  drawPropertyCard(ctx, input.property, lightPalette, pad, photoH + PANEL_PAD, fullW, FONT.title, 3)
   drawContactBar(ctx, input.site, H - CONTACT_BAR_H, CONTACT_BAR_H, false)
 }
 
