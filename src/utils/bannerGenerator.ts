@@ -91,7 +91,7 @@ export const DEFAULT_BANNER_CUSTOMIZATION: BannerCustomization = {
 
 const W = 1080
 const H = 1080
-const INFO_H = 372
+const INFO_H = 430
 const PHOTO_H = H - INFO_H
 const PHOTO_GAP = 6
 const STRIP_H = 128
@@ -108,6 +108,7 @@ const FONT = {
   specValue: '600 22px Inter, Arial, sans-serif',
   specLabel: '500 11px Inter, Arial, sans-serif',
   feature: '500 16px Inter, Arial, sans-serif',
+  description: '500 15px Inter, Arial, sans-serif',
   priceLabel: '600 11px Inter, Arial, sans-serif',
   priceValue: '600 36px Inter, Arial, sans-serif',
   contactName: '600 14px Inter, Arial, sans-serif',
@@ -420,6 +421,20 @@ function extractFeatureChips(property: Property, max = 3): string[] {
       return true
     })
     .slice(0, max)
+}
+
+function getBannerDescription(property: Property): string {
+  let text = (property.description || '')
+    .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+    .replace(/[📞💰📄✅✔✓]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  text = text.replace(/\s*(Agende|WhatsApp|Fale conosco|Ligue agora|Entre em contato|Saiba mais).*$/i, '').trim()
+
+  if (text) return text
+  if (property.amenities?.length) return property.amenities.slice(0, 6).join(' • ')
+  return ''
 }
 
 function getMobilePhone(site: SiteConfig): string {
@@ -783,6 +798,42 @@ function drawFeatureChips(
   return cy + chipH - y
 }
 
+function drawDescriptionBox(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  w: number,
+  maxH: number,
+  palette: Palette,
+  light: boolean,
+): number {
+  if (!text || maxH < 36) return 0
+
+  const padX = 16
+  const padY = 12
+  const lineH = 20
+  ctx.font = FONT.description
+  const maxLines = Math.max(1, Math.floor((maxH - padY * 2) / lineH))
+  const lines = wrapText(ctx, text, w - padX * 2).slice(0, maxLines)
+  if (lines.length === 0) return 0
+
+  const boxH = Math.min(maxH, padY * 2 + lines.length * lineH)
+  const fill = light ? 'rgba(30,64,175,0.08)' : palette.chipBg
+  const color = light ? '#1e3a8a' : palette.chipText
+
+  ctx.fillStyle = fill
+  roundRect(ctx, x, y, w, boxH, 12)
+  ctx.fill()
+
+  ctx.fillStyle = color
+  lines.forEach((line, i) => {
+    ctx.fillText(line, x + padX, y + padY + 14 + i * lineH)
+  })
+
+  return boxH
+}
+
 function drawContactBlock(
   ctx: CanvasRenderingContext2D,
   site: SiteConfig,
@@ -856,10 +907,12 @@ function drawListingCard(
   const inner = 36
   const ix = x + inner
   const iw = w - inner * 2
-  const priceW = Math.min(240, Math.round(iw * 0.32))
-  const titleW = Math.max(160, iw - priceW - 28)
+  const priceW = Math.min(248, Math.max(180, Math.round(iw * 0.28)))
+  const gutter = 20
+  const titleW = Math.max(140, iw - priceW - gutter)
   const footerH = 102
   const footerY = y + h - footerH
+  const priceX = ix + titleW + gutter
   let cy = y + 32
 
   ctx.fillStyle = p.titleColor
@@ -870,19 +923,26 @@ function drawListingCard(
     cy += w < 520 ? 30 : 34
   })
 
-  drawPriceBadge(ctx, input.property, ix + titleW + 28, y + 32, priceW, p)
+  const priceH = drawPriceBadge(ctx, input.property, priceX, y + 28, priceW, p)
 
   ctx.fillStyle = p.mutedColor
   ctx.font = FONT.location
   ctx.fillText(getLocationLine(input.property), ix, cy + 8)
   cy += 32
 
-  cy += drawSpecIconsRow(ctx, input.property, ix, cy, iw, p, light)
-  cy += 16
+  cy = Math.max(cy, y + 28 + priceH + 14)
 
-  const features = extractFeatureChips(input.property, 3)
-  if (features.length > 0 && cy < footerY - 12) {
-    cy += drawFeatureChips(ctx, features, ix, cy, iw, p, light)
+  cy += drawSpecIconsRow(ctx, input.property, ix, cy, iw, p, light)
+  cy += 14
+
+  const description = getBannerDescription(input.property)
+  if (description && cy < footerY - 20) {
+    cy += drawDescriptionBox(ctx, description, ix, cy, iw, footerY - cy - 12, p, light)
+  } else {
+    const features = extractFeatureChips(input.property, 3)
+    if (features.length > 0 && cy < footerY - 12) {
+      drawFeatureChips(ctx, features, ix, cy, iw, p, light)
+    }
   }
 
   drawContactBlock(ctx, input.site, ix, footerY, iw, p, light)
