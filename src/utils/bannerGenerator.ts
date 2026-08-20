@@ -113,6 +113,7 @@ const FONT = {
   contactName: '600 14px Inter, Arial, sans-serif',
   contactMeta: '500 12px Inter, Arial, sans-serif',
   badge: '600 13px Inter, Arial, sans-serif',
+  chip: '600 15px Inter, Arial, sans-serif',
   logoFallback: 'bold 18px Inter, Arial, sans-serif',
 }
 
@@ -407,12 +408,18 @@ function extractHighlights(property: Property, max = 2): string[] {
 
   if (deduped.length >= 1) return deduped.slice(0, max)
 
-  const specs: string[] = []
-  if (property.bedrooms > 0) specs.push(`${property.bedrooms} quartos`)
-  if (property.bathrooms > 0) specs.push(`${property.bathrooms} banheiros`)
-  if (property.area > 0) specs.push(`${property.area} m²`)
-  if (property.parking > 0) specs.push(`${property.parking} vagas`)
-  return specs.slice(0, max)
+  return []
+}
+
+/** Destaques para chips — amenities e trechos da descrição, sem repetir specs. */
+function extractFeatureChips(property: Property, max = 3): string[] {
+  return extractHighlights(property, max + 2)
+    .filter((item) => {
+      const lower = item.toLowerCase()
+      if (/^\d+\s*(quarto|banh|m²|m2|vaga)/i.test(lower)) return false
+      return true
+    })
+    .slice(0, max)
 }
 
 function getMobilePhone(site: SiteConfig): string {
@@ -443,22 +450,6 @@ function getLocationLine(property: Property): string {
   if (!city || loc.toLowerCase().includes(city.toLowerCase())) return loc
   return `${loc} • ${city}`
 }
-
-function getSpecCells(property: Property): Array<{ value: string; label: string }> {
-  const cells: Array<{ value: string; label: string }> = []
-  if (property.bedrooms > 0) {
-    cells.push({ value: String(property.bedrooms), label: property.bedrooms === 1 ? 'QUARTO' : 'QUARTOS' })
-  }
-  if (property.bathrooms > 0) {
-    cells.push({ value: String(property.bathrooms), label: property.bathrooms === 1 ? 'BANH.' : 'BANH.' })
-  }
-  if (property.area > 0) cells.push({ value: String(property.area), label: 'M²' })
-  if (property.parking > 0) {
-    cells.push({ value: String(property.parking), label: property.parking === 1 ? 'VAGA' : 'VAGAS' })
-  }
-  return cells
-}
-
 
 // ─── Layouts de foto ─────────────────────────────────────────────────────────
 
@@ -585,15 +576,76 @@ function drawTopBranding(
 
 function fitPriceSize(ctx: CanvasRenderingContext2D, price: string, maxW: number): number {
   let size = 36
-  while (size >= 24) {
+  while (size >= 22) {
     ctx.font = `600 ${size}px Inter, Arial, sans-serif`
     if (ctx.measureText(price).width <= maxW) return size
     size -= 1
   }
-  return 24
+  return 22
 }
 
-function drawSpecRow(
+type SpecIconKind = 'bed' | 'bath' | 'area' | 'car'
+
+function drawSpecIcon(
+  ctx: CanvasRenderingContext2D,
+  kind: SpecIconKind,
+  x: number,
+  y: number,
+  size: number,
+  color: string,
+) {
+  ctx.save()
+  ctx.strokeStyle = color
+  ctx.fillStyle = color
+  ctx.lineWidth = 2
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+
+  switch (kind) {
+    case 'bed':
+      ctx.strokeRect(x + 1, y + size * 0.42, size - 2, size * 0.32)
+      ctx.beginPath()
+      ctx.moveTo(x + 1, y + size * 0.42)
+      ctx.lineTo(x + 1, y + size * 0.22)
+      ctx.lineTo(x + size * 0.32, y + size * 0.22)
+      ctx.lineTo(x + size * 0.32, y + size * 0.42)
+      ctx.stroke()
+      break
+    case 'bath':
+      ctx.beginPath()
+      ctx.ellipse(x + size / 2, y + size * 0.58, size * 0.34, size * 0.22, 0, 0, Math.PI * 2)
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(x + size * 0.28, y + size * 0.35)
+      ctx.lineTo(x + size * 0.72, y + size * 0.35)
+      ctx.stroke()
+      break
+    case 'area':
+      ctx.strokeRect(x + size * 0.18, y + size * 0.18, size * 0.64, size * 0.64)
+      ctx.beginPath()
+      ctx.moveTo(x + size * 0.28, y + size * 0.72)
+      ctx.lineTo(x + size * 0.72, y + size * 0.28)
+      ctx.stroke()
+      break
+    case 'car':
+      ctx.beginPath()
+      ctx.moveTo(x + size * 0.12, y + size * 0.62)
+      ctx.lineTo(x + size * 0.24, y + size * 0.38)
+      ctx.lineTo(x + size * 0.76, y + size * 0.38)
+      ctx.lineTo(x + size * 0.88, y + size * 0.62)
+      ctx.closePath()
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.arc(x + size * 0.28, y + size * 0.66, size * 0.09, 0, Math.PI * 2)
+      ctx.arc(x + size * 0.72, y + size * 0.66, size * 0.09, 0, Math.PI * 2)
+      ctx.fill()
+      break
+  }
+
+  ctx.restore()
+}
+
+function drawSpecIconsRow(
   ctx: CanvasRenderingContext2D,
   property: Property,
   x: number,
@@ -601,45 +653,134 @@ function drawSpecRow(
   w: number,
   palette: Palette,
   light: boolean,
-) {
-  const cells = getSpecCells(property)
-  if (cells.length === 0) return 0
-  const cellW = w / cells.length
-  const line = light ? 'rgba(15,23,42,0.1)' : 'rgba(255,255,255,0.12)'
+): number {
+  const items: Array<{ kind: SpecIconKind; value: string; label: string }> = []
+  if (property.bedrooms > 0) {
+    items.push({ kind: 'bed', value: String(property.bedrooms), label: property.bedrooms === 1 ? 'quarto' : 'quartos' })
+  }
+  if (property.bathrooms > 0) {
+    items.push({ kind: 'bath', value: String(property.bathrooms), label: 'banh.' })
+  }
+  if (property.area > 0) items.push({ kind: 'area', value: String(property.area), label: 'm²' })
+  if (property.parking > 0) {
+    items.push({ kind: 'car', value: String(property.parking), label: property.parking === 1 ? 'vaga' : 'vagas' })
+  }
+  if (items.length === 0) return 0
 
-  cells.forEach((cell, i) => {
-    const cx = x + i * cellW
-    if (i > 0) {
-      ctx.fillStyle = line
-      ctx.fillRect(cx, y + 2, 1, 44)
-    }
-    const tx = cx + (i === 0 ? 0 : 18)
+  const gap = 10
+  const boxH = 62
+  const boxW = (w - gap * (items.length - 1)) / items.length
+  const chipFill = light ? 'rgba(30,64,175,0.08)' : palette.chipBg
+
+  items.forEach((item, i) => {
+    const bx = x + i * (boxW + gap)
+    ctx.fillStyle = chipFill
+    roundRect(ctx, bx, y, boxW, boxH, 12)
+    ctx.fill()
+    drawSpecIcon(ctx, item.kind, bx + 14, y + 14, 28, palette.accentColor)
     ctx.fillStyle = palette.titleColor
-    ctx.font = FONT.specValue
-    ctx.fillText(cell.value, tx, y + 22)
+    ctx.font = '600 20px Inter, Arial, sans-serif'
+    ctx.fillText(item.value, bx + 48, y + 30)
     ctx.fillStyle = palette.mutedColor
-    ctx.font = FONT.specLabel
-    ctx.fillText(cell.label, tx, y + 44)
+    ctx.font = '500 13px Inter, Arial, sans-serif'
+    ctx.fillText(item.label, bx + 48, y + 48)
   })
-  return 58
+
+  return boxH
 }
 
-function drawPriceColumn(
+function drawPriceBadge(
   ctx: CanvasRenderingContext2D,
   property: Property,
   x: number,
   y: number,
   w: number,
   palette: Palette,
-) {
-  ctx.fillStyle = palette.accentColor
-  ctx.font = FONT.priceLabel
-  ctx.fillText(property.type === 'Venda' ? 'INVESTIMENTO' : 'VALOR MENSAL', x, y)
+): number {
+  const blockH = hasPriceDrop(property) ? 96 : 84
+  const grad = ctx.createLinearGradient(x, y, x + w, y + blockH)
+  grad.addColorStop(0, palette.priceGradientStart)
+  grad.addColorStop(1, palette.priceGradientEnd)
 
-  const size = fitPriceSize(ctx, property.price, w)
-  ctx.fillStyle = palette.titleColor
+  ctx.fillStyle = grad
+  roundRect(ctx, x, y, w, blockH, 14)
+  ctx.fill()
+
+  const innerX = x + 18
+  let labelY = y + 24
+
+  if (hasPriceDrop(property)) {
+    ctx.fillStyle = 'rgba(0,0,0,0.38)'
+    ctx.font = '14px Inter, Arial, sans-serif'
+    const oldPrice = property.previousPriceValue
+      ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(property.previousPriceValue)
+      : ''
+    if (oldPrice) {
+      ctx.fillText(`De ${oldPrice}`, innerX, labelY)
+      const ow = ctx.measureText(`De ${oldPrice}`).width
+      ctx.strokeStyle = 'rgba(0,0,0,0.5)'
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(innerX, labelY - 4)
+      ctx.lineTo(innerX + ow, labelY - 4)
+      ctx.stroke()
+      labelY += 18
+    }
+  }
+
+  ctx.fillStyle = palette.priceText
+  ctx.font = FONT.priceLabel
+  ctx.fillText(property.type === 'Venda' ? 'Investimento' : 'Valor mensal', innerX, labelY)
+
+  const size = fitPriceSize(ctx, property.price, w - 36)
   ctx.font = `600 ${size}px Inter, Arial, sans-serif`
-  ctx.fillText(property.price, x, y + 40)
+  ctx.fillText(property.price, innerX, y + blockH - 16)
+
+  return blockH
+}
+
+function drawFeatureChips(
+  ctx: CanvasRenderingContext2D,
+  items: string[],
+  x: number,
+  y: number,
+  maxW: number,
+  palette: Palette,
+  light: boolean,
+): number {
+  if (items.length === 0) return 0
+
+  const gap = 10
+  const padX = 16
+  const chipH = 34
+  let cx = x
+  let cy = y
+  const rowStart = x
+  const chipFill = light ? 'rgba(30,64,175,0.08)' : palette.chipBg
+  const chipColor = light ? '#1e3a8a' : palette.chipText
+
+  ctx.font = FONT.chip
+  items.forEach((item) => {
+    const text = item.length > 28 ? `${item.slice(0, 26)}…` : item
+    const chipW = ctx.measureText(text).width + padX * 2
+
+    if (cx + chipW > x + maxW && cx > rowStart) {
+      cx = rowStart
+      cy += chipH + gap
+    }
+
+    ctx.fillStyle = chipFill
+    roundRect(ctx, cx, cy, chipW, chipH, 17)
+    ctx.fill()
+    ctx.fillStyle = chipColor
+    ctx.textBaseline = 'middle'
+    ctx.fillText(text, cx + padX, cy + chipH / 2)
+    ctx.textBaseline = 'alphabetic'
+
+    cx += chipW + gap
+  })
+
+  return cy + chipH - y
 }
 
 function drawContactBlock(
@@ -729,53 +870,19 @@ function drawListingCard(
     cy += w < 520 ? 30 : 34
   })
 
-  drawPriceColumn(ctx, input.property, ix + titleW + 28, y + 32, priceW, p)
+  drawPriceBadge(ctx, input.property, ix + titleW + 28, y + 32, priceW, p)
 
   ctx.fillStyle = p.mutedColor
   ctx.font = FONT.location
   ctx.fillText(getLocationLine(input.property), ix, cy + 8)
   cy += 32
 
-  cy += drawSpecRow(ctx, input.property, ix, cy, iw, p, light)
-  cy += 18
+  cy += drawSpecIconsRow(ctx, input.property, ix, cy, iw, p, light)
+  cy += 16
 
-  const features = extractHighlights(input.property, 4)
-  ctx.font = FONT.feature
-  const lineH = 22
-  const maxFeatureBottom = footerY - 16
-
-  if (w >= 560 && features.length >= 2) {
-    const colW = (iw - 24) / 2
-    const rowCount = Math.ceil(features.length / 2)
-    for (let row = 0; row < rowCount; row++) {
-      if (cy + lineH > maxFeatureBottom) break
-      for (let col = 0; col < 2; col++) {
-        const item = features[row * 2 + col]
-        if (!item) continue
-        const fx = ix + col * (colW + 24)
-        ctx.fillStyle = p.accentColor
-        ctx.fillText('·', fx, cy)
-        ctx.fillStyle = p.textColor
-        const line = wrapText(ctx, item, colW - 18)[0]
-        ctx.fillText(line, fx + 14, cy)
-      }
-      cy += lineH + 6
-    }
-  } else {
-    features.forEach((item) => {
-      if (cy + lineH > maxFeatureBottom) return
-      ctx.fillStyle = p.accentColor
-      ctx.fillText('·', ix, cy)
-      ctx.fillStyle = p.textColor
-      wrapText(ctx, item, iw - 18)
-        .slice(0, 2)
-        .forEach((line, i) => {
-          if (cy + lineH > maxFeatureBottom) return
-          ctx.fillText(line, ix + 14, cy + i * lineH)
-        })
-      const used = Math.min(2, wrapText(ctx, item, iw - 18).length)
-      cy += used * lineH + 6
-    })
+  const features = extractFeatureChips(input.property, 3)
+  if (features.length > 0 && cy < footerY - 12) {
+    cy += drawFeatureChips(ctx, features, ix, cy, iw, p, light)
   }
 
   drawContactBlock(ctx, input.site, ix, footerY, iw, p, light)
